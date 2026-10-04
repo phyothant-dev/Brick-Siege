@@ -1,0 +1,1418 @@
+:root {
+  --lego-red: #d0011b;
+  --lego-blue: #0055ad;
+  --lego-yellow: #ffcf00;
+  --lego-green: #237841;
+  --lego-white: #ffffff;
+  --lego-black: #212121;
+  --lego-orange: #fe8a18;
+  --sky: #5c94fc;
+  --ice: #a5e9ff;
+  --shadow: #a3a3a3;
+
+  --panel-bg: var(--lego-black);
+  --panel-fg: var(--lego-yellow);
+  --slot-bg: rgba(255, 255, 255, 0.06);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--lego-black);
+  font-family: 'Poppins', sans-serif;
+  color: var(--lego-white);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+body {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+}
+
+#game-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  display: block;
+  cursor: crosshair;
+}
+
+#game-canvas.is-placing {
+  cursor: cell;
+}
+
+#game-canvas.is-combining {
+  cursor: alias;
+}
+
+#game-canvas.is-panning {
+  cursor: grabbing;
+}
+
+/* ================= SHARED BRICK PANEL ================= */
+.panel {
+  background: var(--panel-bg);
+  border: 4px solid var(--lego-black);
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.55);
+  font-family: 'Ubuntu Mono', monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ================= TOP BAR ================= */
+#top-bar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  padding: 8px 10px;
+  z-index: 20;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 6px 14px;
+  background: var(--slot-bg);
+  border: 3px solid rgba(255, 255, 255, 0.14);
+  min-width: 96px;
+}
+
+.stat__label {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.2;
+}
+
+.stat__value {
+  font-size: 1.25rem;
+  line-height: 1.15;
+  color: var(--lego-white);
+}
+
+.stat__value--sm {
+  font-size: 0.85rem;
+  padding-top: 2px;
+}
+
+.stat--gold .stat__value {
+  color: var(--lego-yellow);
+}
+
+.stat--fortress {
+  min-width: 170px;
+}
+
+.stat--threat .stat__value {
+  color: var(--lego-orange);
+}
+
+.hpbar {
+  height: 14px;
+  margin-top: 4px;
+  background: #000;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+}
+
+.hpbar__fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(180deg, #6ee787, var(--lego-green));
+  transition: width 0.25s ease-out;
+}
+
+.stat__value.is-critical {
+  color: #ff6a55;
+  animation: stat-pulse 0.9s ease-in-out infinite;
+}
+@keyframes stat-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stat__value.is-critical { animation: none; }
+}
+
+.hpbar__fill.is-critical {
+  background: linear-gradient(180deg, #ff6b6b, var(--lego-red));
+}
+
+.topbar__actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ================= BUTTONS ================= */
+.brick-btn {
+  font-family: 'Ubuntu Mono', monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  padding: 10px 16px;
+  border: 4px solid var(--lego-black);
+  background: var(--lego-blue);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 4px 4px 0px #000;
+  transition: transform 0.1s, box-shadow 0.1s, filter 0.1s;
+}
+
+.brick-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #000;
+  filter: brightness(1.12);
+}
+
+.brick-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #000;
+}
+
+.brick-btn--ghost {
+  background: var(--slot-bg);
+  color: var(--lego-yellow);
+  padding: 10px 14px;
+  font-size: 0.95rem;
+}
+
+.brick-btn--dark {
+  color: #fff;
+}
+
+/* Primary action and the escape hatch to the main menu sit side by side. */
+.overlay__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.overlay__actions .brick-btn {
+  flex: 1 1 auto;
+  min-width: 140px;
+  margin: 0;
+}
+
+/* On a short landscape phone the two buttons stack instead of squeezing. */
+@media (max-height: 460px) {
+  .overlay__actions {
+    gap: 6px;
+  }
+  .overlay__actions .brick-btn {
+    min-width: 0;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Muted state for the sound button. */
+.brick-btn.is-off {
+  color: var(--lego-red);
+  text-decoration: line-through;
+}
+
+.brick-btn--primary {
+  background: var(--lego-yellow);
+  color: var(--lego-black);
+  font-size: 1rem;
+  padding: 14px 34px;
+}
+
+.brick-btn--sell {
+  background: var(--lego-red);
+  flex: 1;
+}
+
+.brick-btn--combine {
+  background: var(--lego-green);
+  flex: 1;
+}
+
+.brick-btn[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: 2px 2px 0px #000 !important;
+}
+
+/* ================= INSPECTOR ================= */
+#inspector {
+  position: absolute;
+  right: 12px;
+  top: 92px;
+  width: 232px;
+  padding: 0 0 12px;
+  z-index: 20;
+}
+
+.inspector__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--lego-blue);
+  padding: 8px 10px;
+  border-bottom: 4px solid var(--lego-black);
+}
+
+.inspector__title {
+  font-size: 0.82rem;
+  line-height: 1.2;
+}
+
+.inspector__close {
+  background: var(--lego-red);
+  color: #fff;
+  border: 3px solid var(--lego-black);
+  width: 26px;
+  height: 26px;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  font-family: 'Ubuntu Mono', monospace;
+  font-weight: 700;
+}
+
+.inspector__tier {
+  display: flex;
+  gap: 4px;
+  padding: 10px 10px 0;
+}
+
+.tier-pip {
+  flex: 1;
+  height: 12px;
+  background: #000;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.tier-pip.is-on {
+  background: var(--lego-yellow);
+  border-color: #000;
+}
+
+.inspector__stats {
+  padding: 8px 10px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3px 8px;
+  font-size: 0.7rem;
+}
+
+.inspector__stats b {
+  color: var(--lego-yellow);
+  text-align: right;
+}
+
+.inspector__elem {
+  margin: 4px 10px 10px;
+  padding: 6px 8px;
+  font-size: 0.62rem;
+  line-height: 1.5;
+  border: 3px dashed rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.inspector__actions {
+  display: flex;
+  gap: 8px;
+  padding: 0 10px;
+}
+
+/* ================= SHOP BAR ================= */
+/* ---- Visibility utility ----
+   Needed because id rules like #shop-bar{display:flex} outrank a plain
+   .is-hidden class, so toggling the class silently did nothing. */
+.is-hidden {
+  display: none !important;
+}
+
+#shop-bar {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  z-index: 20;
+  max-width: calc(100vw - 24px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+#shop-bar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---- Pointer-capability switches ----
+   Keyboard help is a bottom-left stack, i.e. the same corner the shop bar
+   occupies once it wraps. Without a keyboard it is both useless and in the
+   way, so it is removed rather than made smaller. */
+@media (pointer: coarse), (hover: none) {
+  #hints {
+    display: none;
+  }
+}
+@media (min-width: 1001px) and (pointer: coarse) {
+  #hints {
+    display: none;
+  }
+}
+.only-coarse-pointer { display: none; }
+@media (pointer: coarse), (hover: none) {
+  .only-fine-pointer { display: none; }
+  .only-coarse-pointer { display: inline; }
+}
+
+/* ---- Notches and home indicators ---- */
+#top-bar {
+  padding-top: max(8px, env(safe-area-inset-top));
+  padding-left: max(10px, env(safe-area-inset-left));
+  padding-right: max(10px, env(safe-area-inset-right));
+}
+@media (max-width: 1000px) {
+  #shop-bar {
+    bottom: max(6px, env(safe-area-inset-bottom));
+    padding-left: max(6px, env(safe-area-inset-left));
+    padding-right: max(6px, env(safe-area-inset-right));
+  }
+}
+
+/* ---- Attacker palette on small screens ---- */
+@media (max-width: 1000px) {
+  #attack-bar {
+    bottom: max(4px, env(safe-area-inset-bottom));
+    left: 4px;
+    right: 4px;
+    transform: none;
+    max-width: none;
+  }
+  .attack-bar__row {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 3px;
+    overflow-x: visible;
+  }
+  #attack-bar .build-btn {
+    width: auto;
+    min-width: 0;
+    padding: 1px 1px;
+    gap: 0px;
+    border-width: 2px;
+    border-left-width: 4px;
+    min-height: 0;
+  }
+  #attack-bar .build-btn__icon {
+    margin: 0 auto;
+    width: 20px;
+    height: 20px;
+  }
+  #attack-bar .build-btn__name {
+    font-size: 0.38rem;
+    line-height: 1;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  #attack-bar .build-btn__meta {
+    display: none;
+  }
+  #attack-bar .build-btn__cost {
+    font-size: 0.4rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1000px) {
+  .attack-bar__row {
+    grid-template-columns: repeat(9, 1fr);
+  }
+}
+
+/* ---- Short landscape phones: give the board back its height ---- */
+@media (orientation: landscape) and (max-height: 500px) {
+  #top-bar {
+    padding: 4px 6px;
+    gap: 6px;
+  }
+  #top-bar .stat--threat {
+    display: none;
+  }
+  .stat__label {
+    font-size: 0.5rem;
+  }
+  .stat__value {
+    font-size: 0.85rem;
+  }
+  #shop-bar {
+    padding: 5px;
+    gap: 4px;
+  }
+  .build-btn {
+    min-height: 38px;
+    padding: 2px;
+    border-width: 2px;
+  }
+  .build-btn__icon {
+    width: 26px;
+    height: 26px;
+  }
+  .build-btn__name {
+    font-size: 0.46rem;
+  }
+  .build-btn--wave {
+    min-height: 34px;
+  }
+  #inspector {
+    max-height: 46vh;
+    overflow-y: auto;
+  }
+}
+
+.build-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  width: 116px;
+  padding: 8px;
+  background: var(--slot-bg);
+  border: 3px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-family: 'Ubuntu Mono', monospace;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.1s, background 0.1s;
+  flex: 0 0 auto;
+}
+
+.build-btn:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.build-btn.is-active {
+  border-color: var(--lego-yellow);
+  background: rgba(255, 207, 0, 0.18);
+  box-shadow: inset 0 0 0 3px var(--lego-yellow);
+}
+
+.build-btn.is-locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.build-btn__key {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  background: var(--lego-yellow);
+  color: var(--lego-black);
+  font-size: 0.68rem;
+  border: 3px solid var(--lego-black);
+  font-weight: 700;
+}
+
+.build-btn__icon {
+  height: 42px;
+  display: grid;
+  place-items: center;
+}
+
+.build-btn__icon canvas {
+  width: 46px;
+  height: 42px;
+  image-rendering: auto;
+}
+
+.build-btn__name {
+  font-size: 0.6rem;
+  line-height: 1.15;
+  min-height: 1.4em;
+}
+
+.build-btn__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  font-size: 0.55rem;
+}
+
+.build-btn__meta em {
+  font-style: normal;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.build-btn__meta b {
+  color: var(--lego-yellow);
+  font-size: 0.7rem;
+}
+
+.build-btn.is-affordable .build-btn__meta b {
+  color: #6ee787;
+}
+
+.build-btn--wave {
+  width: 150px;
+  background: var(--lego-green);
+  border-color: #000;
+  justify-content: center;
+}
+
+.build-btn--wave.is-rushing {
+  background: var(--lego-orange);
+}
+
+.build-btn--wave .build-btn__name {
+  font-size: 0.78rem;
+  min-height: 0;
+}
+
+.build-btn--wave .build-btn__meta b {
+  color: #fff;
+}
+
+/* ---- Shop bar: small screens ----
+   Eight towers need ~950px. Below that the bar wraps into a grid and the wave
+   button takes its own full-width row, so nothing is ever parked off the right
+   edge behind a scrollbar we deliberately hide.
+
+   NOTE: this block must stay AFTER the base .build-btn rules. A media query
+   carries no extra specificity, so an earlier copy here was silently beaten by
+   the base `width: 116px`, which left the buttons overflowing the grid. */
+@media (max-width: 1000px) {
+  #shop-bar {
+    bottom: 6px;
+    left: 6px;
+    right: 6px;
+    transform: none;
+    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    overflow-x: visible;
+  }
+  #shop-bar .build-btn,
+  #shop-bar .build-btn--wave {
+    width: auto;
+    min-width: 0;
+  }
+  #shop-bar .build-btn--wave {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1000px) {
+  #shop-bar {
+    grid-template-columns: repeat(8, 1fr);
+  }
+}
+
+/* ================= HINTS ================= */
+#hints {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  font-size: 0.55rem;
+  color: rgba(255, 255, 255, 0.6);
+  z-index: 15;
+  pointer-events: none;
+}
+
+kbd {
+  background: #000;
+  color: var(--lego-yellow);
+  padding: 1px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-family: 'Ubuntu Mono', monospace;
+  font-size: 0.95em;
+}
+
+/* ================= TOASTS ================= */
+#toasts {
+  position: absolute;
+  top: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.toast {
+  font-family: 'Ubuntu Mono', monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  padding: 8px 16px;
+  background: var(--lego-black);
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5);
+  animation: toastPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.toast--gold {
+  color: var(--lego-yellow);
+  border-color: var(--lego-yellow);
+}
+
+.toast--bad {
+  color: #fff;
+  background: var(--lego-red);
+  border-color: #000;
+}
+
+.toast--info {
+  color: #fff;
+  background: var(--lego-blue);
+}
+
+.toast.is-out {
+  animation: toastOut 0.3s forwards;
+}
+
+@keyframes toastPop {
+  from {
+    transform: scale(0.6) translateY(-14px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes toastOut {
+  to {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+}
+
+/* ================= OVERLAY ================= */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  display: grid;
+  place-items: center;
+  z-index: 40;
+  padding: 20px;
+  animation: fadeIn 0.25s ease-out;
+  /* Short screens (landscape phones, small laptops) must still reach the
+     start button, so the panel scrolls instead of overflowing off-screen. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* The menu card itself: cap the height and let the inner content scroll. */
+.overlay__panel {
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Landscape phones have almost no vertical room. Trim every layer of the card
+   so the stats and both buttons stay visible without scrolling. */
+@media (max-height: 460px) {
+  .overlay {
+    padding: 8px;
+  }
+  .overlay__box {
+    padding: 12px 14px 10px;
+    border-width: 5px;
+    box-shadow: 6px 6px 0px var(--lego-red);
+  }
+  .overlay__box--compact {
+    padding: 10px 12px 8px;
+  }
+  .overlay__box--compact .overlay__title {
+    font-size: 1.05rem;
+  }
+  .overlay__box--compact .overlay__badge {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+  }
+  .overlay__stat {
+    padding: 5px 6px;
+  }
+  .overlay__stat b {
+    font-size: 0.95rem;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.overlay__box {
+  width: min(560px, 100%);
+  /* dvh tracks mobile browser chrome; the vh fallback keeps older engines
+     working. Capped well under the full height so the card never looks like it
+     is the whole screen on a landscape phone. */
+  max-height: 88vh;
+  max-height: 88dvh;
+  overflow-y: auto;
+  background: var(--lego-black);
+  border: 8px solid #000;
+  box-shadow: 12px 12px 0px var(--lego-red);
+  padding: 26px 26px 22px;
+  text-align: center;
+}
+
+.overlay__box--wide {
+  width: min(1180px, 100%);
+}
+
+/* Pause and result screens carry no map picker or side/theme rows, so the wide
+   box left a huge empty frame around a line of text. */
+.overlay__box--compact {
+  width: min(480px, 100%);
+  padding: 20px 20px 18px;
+}
+.overlay__box--compact .overlay__title {
+  font-size: clamp(1.25rem, 3.4vw, 1.7rem);
+  -webkit-text-stroke: 1.5px #000;
+  text-shadow: 3px 3px 0px var(--lego-red);
+}
+.overlay__box--compact .overlay__badge {
+  margin-bottom: 8px;
+}
+
+/* Compact run summary, used on the pause and result screens. */
+.overlay__stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 10px;
+  margin: 12px 0 4px;
+  text-align: left;
+}
+.overlay__stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 9px;
+  background: rgba(255, 255, 255, 0.06);
+  border-left: 3px solid var(--lego-red);
+  font-family: 'Ubuntu Mono', monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.62);
+}
+.overlay__stat b {
+  font-size: 0.86rem;
+  color: #fff;
+}
+.overlay__stat--clock {
+  border-left-color: var(--lego-yellow);
+}
+.overlay__stat--clock.is-critical b {
+  color: #ff6a55;
+}
+
+.overlay__badge {
+  display: inline-block;
+  font-family: 'Ubuntu Mono', monospace;
+  font-size: 0.68rem;
+  background: var(--lego-yellow);
+  color: var(--lego-black);
+  padding: 4px 12px;
+  border: 3px solid #000;
+  margin-bottom: 14px;
+}
+
+.overlay__title {
+  font-size: clamp(1.6rem, 5vw, 2.6rem);
+  text-transform: uppercase;
+  color: #fff;
+  -webkit-text-stroke: 2px #000;
+  text-shadow: 5px 5px 0px var(--lego-red);
+  margin-bottom: 4px;
+}
+
+.overlay__tag {
+  font-family: 'Ubuntu Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--lego-yellow);
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.overlay__body {
+  font-family: 'Ubuntu Mono', monospace;
+  font-size: 0.78rem;
+  line-height: 1.75;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.overlay__body p {
+  margin-bottom: 10px;
+}
+
+.overlay__body strong {
+  color: var(--lego-yellow);
+}
+
+.overlay__body ul {
+  list-style: none;
+  display: grid;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+.overlay__body li::before {
+  content: '\25A0 ';
+  color: var(--lego-red);
+}
+
+.overlay__foot {
+  margin-top: 18px;
+  font-family: 'Ubuntu Mono', monospace;
+  font-size: 0.55rem;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+}
+
+.overlay__hint {
+  margin-top: 10px;
+  font-family: 'Ubuntu Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  color: var(--lego-yellow);
+  animation: hint-pulse 1.6s ease-in-out infinite;
+}
+
+.overlay__hint.is-hidden {
+  display: none;
+}
+
+@keyframes hint-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.result-cell {
+  background: rgba(255, 255, 255, 0.06);
+  border: 3px solid rgba(255, 255, 255, 0.14);
+  padding: 8px;
+  text-align: center;
+}
+
+.result-cell span {
+  display: block;
+  font-size: 0.55rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.result-cell b {
+  font-size: 1.15rem;
+  color: var(--lego-yellow);
+}
+
+/* ================= CODEX ================= */
+.codex-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(212px, 1fr));
+  gap: 8px;
+}
+
+.codex-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 3px solid rgba(255, 255, 255, 0.16);
+  border-left-width: 8px;
+  padding: 8px;
+}
+
+.codex-card h4 {
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+  color: #fff;
+}
+
+.codex-card p {
+  font-size: 0.62rem;
+  line-height: 1.6;
+  margin: 0 0 6px;
+}
+
+.codex-res {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.codex-chip {
+  font-size: 0.55rem;
+  padding: 2px 5px;
+  border: 2px solid #000;
+  color: var(--lego-black);
+  font-weight: 700;
+}
+
+.chip-good {
+  background: #6ee787;
+}
+
+.chip-bad {
+  background: #ff6b6b;
+}
+
+.chip-weak {
+  background: var(--lego-yellow);
+}
+
+.chip-immune {
+  background: #9aa0a6;
+  color: #fff;
+}
+
+.codex-note {
+  margin-top: 14px;
+  padding: 10px;
+  border: 3px dashed rgba(255, 255, 255, 0.3);
+  font-size: 0.62rem;
+  line-height: 1.7;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 900px) {
+  #hints {
+    display: none;
+  }
+  .stat--threat {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  #top-bar {
+    top: 6px;
+    left: 6px;
+    right: 6px;
+    gap: 6px;
+    padding: 6px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    min-width: 70px;
+    padding: 4px 8px;
+  }
+  .stat--fortress {
+    min-width: 120px;
+  }
+  .stat__value {
+    font-size: 1rem;
+  }
+  .brick-btn {
+    padding: 8px 10px;
+    font-size: 0.68rem;
+  }
+  /* Shop grid is inherited from the <=1000px block; phones only need the
+     tighter metrics so 8 towers + wave cost ~190px instead of ~250px. */
+  .build-btn {
+    min-height: 44px;
+    padding: 3px 2px;
+    gap: 1px;
+    border-width: 2px;
+    border-left-width: 5px;
+  }
+  .build-btn__icon {
+    margin: 0 auto;
+    width: 32px;
+    height: 32px;
+  }
+  .build-btn__key {
+    width: 15px;
+    height: 15px;
+    font-size: 0.5rem;
+  }
+  .build-btn__name {
+    font-size: 0.46rem;
+    line-height: 1;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  .build-btn--wave {
+    min-height: 40px;
+  }
+  .build-btn--wave .build-btn__name {
+    font-size: 0.66rem;
+  }
+  #inspector {
+    top: auto;
+    bottom: 132px;
+    right: 6px;
+    width: 196px;
+  }
+}
+.codex-card__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.codex-card__icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  display: grid;
+  place-items: center;
+}
+
+.codex-card__icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* ---------------------------------------------------------- map picker */
+
+.map-picker {
+  margin: 16px 0 4px;
+  text-align: left;
+}
+
+.map-picker__label {
+  font-family: 'Ubuntu Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.map-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.map-card {
+  background: var(--slot-bg);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  color: var(--lego-yellow);
+  font-family: 'Ubuntu Mono', monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  padding: 12px 6px 10px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: transform 0.08s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.map-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.map-card.is-active {
+  background: var(--lego-yellow);
+  color: #101216;
+  border-color: var(--lego-yellow);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.45);
+}
+
+.map-card__mini {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  margin-bottom: 8px;
+  image-rendering: pixelated;
+  background: #e9e7e0;
+  border: 2px solid rgba(0, 0, 0, 0.35);
+}
+
+.map-picker__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+  font-family: 'Ubuntu Mono', monospace;
+  font-size: 0.58rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.map-picker__reroll {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.7);
+  font-family: inherit;
+  font-size: 0.55rem;
+  padding: 5px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.map-picker__reroll:hover {
+  border-color: var(--lego-yellow);
+  color: var(--lego-yellow);
+}
+
+/* ================= BACKGROUND THEME PICKER ================= */
+/* ---- side picker (defender / attacker) ---- */
+.side-picker {
+  margin: 14px 0 4px;
+  text-align: center;
+}
+.side-picker__label {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 6px;
+}
+.side-picker__row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+.side-btn {
+  flex: 1 1 0;
+  max-width: 220px;
+  padding: 9px 12px;
+  background: var(--slot-bg);
+  border: 3px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-family: 'Ubuntu Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.1s, background 0.1s;
+}
+.side-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.12);
+}
+.side-btn.is-active {
+  border-color: var(--accent, #ffcf00);
+  background: rgba(255, 207, 0, 0.16);
+}
+.side-picker__blurb {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.6rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+/* ---- attacker palette ----
+   Sits where the tower shop sits, but the bar is taller because it carries a
+   hint line, so it is pinned slightly higher to stay clear of the safe area. */
+#attack-bar {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  max-width: calc(100vw - 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+}
+#attack-bar.is-hidden {
+  display: none;
+}
+.attack-bar__hint {
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.65);
+  text-align: center;
+}
+.attack-bar__row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.attack-bar__row::-webkit-scrollbar {
+  display: none;
+}
+.attack-bar__row .build-btn.is-active {
+  border-color: var(--accent, #ffcf00);
+  background: rgba(255, 207, 0, 0.18);
+}
+.attack-bar__row .build-btn.is-poor .cost {
+  color: #ff8a7a;
+}
+body[data-side='attacker'] .build-btn {
+  cursor: pointer;
+}
+
+.theme-picker {
+  margin: 14px 0 4px;
+  text-align: center;
+}
+.theme-picker__label {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 7px;
+}
+.theme-picker__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.theme-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  font-family: 'Ubuntu Mono', monospace;
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+  border: 3px solid rgba(255, 255, 255, 0.16);
+  cursor: pointer;
+}
+.theme-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.theme-btn.is-active {
+  border-color: var(--lego-yellow);
+  background: rgba(242, 205, 55, 0.18);
+}
+.theme-btn__swatch {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.45);
+  flex: none;
+}
+.theme-picker__blurb {
+  display: block;
+  margin-top: 7px;
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.overlay__controls {
+  margin: 10px 0 12px;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.55);
+}
+.overlay__controls b {
+  color: var(--lego-yellow);
+}
+
+/* Short/landscape screens: shrink the map previews and tighten the menu so the
+   whole panel, including the start button, fits without scrolling. */
+@media (max-height: 760px) {
+  .map-card__mini { max-width: 128px; margin: 0 auto 6px; }
+  .map-picker__grid { gap: 7px; }
+  .theme-picker { margin: 9px 0 3px; }
+  .overlay__title { font-size: 1.5rem; margin: 4px 0; }
+  .overlay__tag { margin: 2px 0 8px; }
+  .overlay__controls { margin: 7px 0 8px; }
+  .overlay__foot { display: none; }
+}
+@media (max-width: 640px) {
+  .map-picker__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .map-card__name { font-size: 0.58rem; }
+}
+
+.codex-tabs {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 10px 0 12px;
+}
+.codex-tab {
+  padding: 8px 18px;
+  font-family: 'Ubuntu Mono', monospace;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+  border: 3px solid rgba(255, 255, 255, 0.16);
+  cursor: pointer;
+}
+.codex-tab.is-active {
+  border-color: var(--lego-yellow);
+  background: rgba(242, 205, 55, 0.18);
+}
+
+@media (orientation: landscape) and (max-height: 420px) {
+  #attack-bar .build-btn__icon { width: 18px; height: 18px; }
+  #attack-bar .build-btn__name { display: none; }
+  #attack-bar .build-btn { padding: 2px 0; }
+  #top-bar { padding: 2px 4px; gap: 4px; }
+  #top-bar .stat__label { font-size: 0.46rem; }
+  #top-bar .stat__value { font-size: 0.76rem; }
+  #shop-bar { padding: 3px; gap: 3px; }
+  .build-btn { min-height: 32px; }
+}

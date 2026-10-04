@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#212121" />
+    <meta
+      name="description"
+      content="Brick Siege — a LEGO-themed 3D tower defense. Place bricks, combine towers, defend the fortress."
+    />
+    <title>Brick Siege | LEGO Tower Defense</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23d0011b'/%3E%3Crect x='4' y='12' width='24' height='16' fill='%23d0011b' stroke='%23000' stroke-width='2'/%3E%3Ccircle cx='11' cy='10' r='4' fill='%23d0011b' stroke='%23000' stroke-width='2'/%3E%3Ccircle cx='21' cy='10' r='4' fill='%23d0011b' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Ubuntu+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <script type="module" crossorigin src="./assets/index-BMcumRfw.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CCrkIqm0.css">
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game-canvas"></canvas>
+
+      <!-- ============ TOP STATUS BAR ============ -->
+      <header id="top-bar" class="panel">
+        <div class="stat stat--gold">
+          <span class="stat__label">BRICKS</span>
+          <span class="stat__value" id="stat-gold">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat__label">WAVE</span>
+          <span class="stat__value" id="stat-wave">0 / 25</span>
+        </div>
+        <div class="stat stat--fortress">
+          <span class="stat__label">FORTRESS</span>
+          <div class="hpbar"><div class="hpbar__fill" id="stat-hp-fill"></div></div>
+          <span class="stat__value stat__value--sm" id="stat-hp">20 / 20</span>
+        </div>
+        <div class="stat stat--threat">
+          <span class="stat__label">NEXT WAVE</span>
+          <span class="stat__value stat__value--sm" id="stat-threat">BUILD PHASE</span>
+        </div>
+        <div class="topbar__actions">
+          <button class="brick-btn brick-btn--ghost" id="btn-speed" title="Toggle game speed (X)">1&times;</button>
+          <button class="brick-btn brick-btn--ghost" id="btn-sound" title="Toggle sound (M)">&#9835;</button>
+          <button class="brick-btn brick-btn--ghost" id="btn-pause" title="Pause (ESC)">II</button>
+          <button class="brick-btn brick-btn--ghost" id="btn-codex" title="Enemy codex (H)">?</button>
+          <button class="brick-btn brick-btn--ghost brick-btn--dark" id="btn-restart" title="Restart">&#8635;</button>
+        </div>
+      </header>
+
+      <!-- ============ TOWER INSPECTOR ============ -->
+      <aside id="inspector" class="panel hidden">
+        <div class="inspector__head">
+          <span class="inspector__title" id="insp-name">BRICK SHOOTER</span>
+          <button class="inspector__close" id="insp-close" title="Deselect">&times;</button>
+        </div>
+        <div class="inspector__tier" id="insp-tier"></div>
+        <div class="inspector__stats" id="insp-stats"></div>
+        <div class="inspector__elem" id="insp-elem"></div>
+        <div class="inspector__actions">
+          <button class="brick-btn brick-btn--combine" id="btn-combine">COMBINE</button>
+          <button class="brick-btn brick-btn--sell" id="btn-sell">SELL</button>
+        </div>
+      </aside>
+
+      <!-- ============ BUILD PALETTE ============ -->
+      <!-- ATTACKER PALETTE: replaces the tower shop when playing the attacker
+           side. Units are deployed by tapping a lane tile. -->
+      <footer id="attack-bar" class="panel is-hidden">
+        <div class="attack-bar__hint" id="attack-hint">PICK A UNIT, THEN TAP A LANE TILE</div>
+        <div class="attack-bar__row" id="attack-row"></div>
+      </footer>
+
+      <footer id="shop-bar" class="panel">
+        <button class="build-btn" data-tower="shooter">
+          <span class="build-btn__key">1</span>
+          <span class="build-btn__icon" data-icon="shooter"></span>
+          <span class="build-btn__name">BRICK SHOOTER</span>
+          <span class="build-btn__meta"><em>PHYSICAL</em><b class="cost">60</b></span>
+        </button>
+        <button class="build-btn" data-tower="mortar">
+          <span class="build-btn__key">2</span>
+          <span class="build-btn__icon" data-icon="mortar"></span>
+          <span class="build-btn__name">MORTAR</span>
+          <span class="build-btn__meta"><em>SPLASH</em><b class="cost">110</b></span>
+        </button>
+        <button class="build-btn" data-tower="freezer">
+          <span class="build-btn__key">3</span>
+          <span class="build-btn__icon" data-icon="freezer"></span>
+          <span class="build-btn__name">FREEZER</span>
+          <span class="build-btn__meta"><em>ICE</em><b class="cost">95</b></span>
+        </button>
+        <button class="build-btn" data-tower="coil">
+          <span class="build-btn__key">4</span>
+          <span class="build-btn__icon" data-icon="coil"></span>
+          <span class="build-btn__name">TESLA COIL</span>
+          <span class="build-btn__meta"><em>LIGHTNING</em><b class="cost">130</b></span>
+        </button>
+        <button class="build-btn" data-tower="sprayer">
+          <span class="build-btn__key">5</span>
+          <span class="build-btn__icon" data-icon="sprayer"></span>
+          <span class="build-btn__name">SPRAYER</span>
+          <span class="build-btn__meta"><em>POISON</em><b class="cost">100</b></span>
+        </button>
+        <button class="build-btn" data-tower="sniper">
+          <span class="build-btn__key">6</span>
+          <span class="build-btn__icon" data-icon="sniper"></span>
+          <span class="build-btn__name">LONG SHOT</span>
+          <span class="build-btn__meta"><em>PHYSICAL</em><b class="cost">95</b></span>
+        </button>
+        <button class="build-btn" data-tower="cluster">
+          <span class="build-btn__key">7</span>
+          <span class="build-btn__icon" data-icon="cluster"></span>
+          <span class="build-btn__name">CLUSTER</span>
+          <span class="build-btn__meta"><em>ICE</em><b class="cost">85</b></span>
+        </button>
+        <button class="build-btn" data-tower="support">
+          <span class="build-btn__key">8</span>
+          <span class="build-btn__icon" data-icon="support"></span>
+          <span class="build-btn__name">BEACON</span>
+          <span class="build-btn__meta"><em>SUPPORT</em><b class="cost">70</b></span>
+        </button>
+        <button class="build-btn build-btn--wave" id="btn-start-wave">
+          <span class="build-btn__name" id="wave-btn-label">START WAVE 1</span>
+          <span class="build-btn__meta"><em>BUILD PHASE</em><b id="wave-timer">20s</b></span>
+        </button>
+      </footer>
+
+      <!-- ============ FLOATING HELP ============ -->
+      <!-- Keyboard help. Absolutely positioned bottom-left, which is exactly
+           where the shop bar sits on small screens, so it is hidden wherever
+           there is no keyboard (see the pointer:coarse rule in styles.css). -->
+      <div id="hints" class="panel">
+        <span><kbd>1</kbd>-<kbd>8</kbd> build</span>
+        <span><kbd>WASD</kbd> pan</span>
+        <span><kbd>Scroll</kbd> zoom</span>
+        <span><kbd>Space</kbd> wave</span>
+        <span><kbd>Esc</kbd> pause</span>
+      </div>
+
+      <!-- ============ TOASTS ============ -->
+      <div id="toasts"></div>
+
+      <!-- ============ OVERLAY ============ -->
+      <div id="overlay" class="overlay">
+        <div class="overlay__box overlay__box--wide overlay__panel">
+          <div class="overlay__badge">SET #2026-BS</div>
+          <h1 class="overlay__title" id="ov-title">BRICK SIEGE</h1>
+          <p class="overlay__tag" id="ov-tag">MASTER BUILDER DEFENSE</p>
+          <div class="overlay__body" id="ov-body"></div>
+          <div class="map-picker" id="map-picker">
+            <div class="map-picker__label">CHOOSE YOUR MAP</div>
+            <div class="map-picker__grid" id="map-grid"></div>
+            <div class="map-picker__foot">
+              <span id="map-blurb">Pick a map before you play.</span>
+            </div>
+          </div>
+          <div class="side-picker">
+            <span class="side-picker__label">CHOOSE YOUR SIDE</span>
+            <div class="side-picker__row" id="side-row"></div>
+            <span class="side-picker__blurb" id="side-blurb"></span>
+          </div>
+
+          <div class="theme-picker">
+            <span class="theme-picker__label">BACKGROUND</span>
+            <div class="theme-picker__row" id="theme-row"></div>
+            <span class="theme-picker__blurb" id="theme-blurb"></span>
+          </div>
+          <div class="overlay__actions">
+            <button class="brick-btn brick-btn--primary" id="ov-primary">BUILD FORTRESS</button>
+            <button class="brick-btn brick-btn--ghost" id="ov-menu" hidden>MAIN MENU</button>
+          </div>
+          <div class="overlay__controls">
+            <span class="only-fine-pointer">
+              <b>RIGHT-DRAG</b> look around &middot; <b>LEFT-DRAG</b> pan &middot;
+              <b>SCROLL</b> zoom &middot; <b>H</b> codex &middot; <b>SPACE</b> start
+            </span>
+            <span class="only-coarse-pointer">
+              <b>1 FINGER</b> pan &middot; <b>2 FINGERS</b> twist to look &middot;
+              <b>PINCH</b> zoom &middot; <b>TAP</b> a tower to upgrade
+            </span>
+          </div>
+          <div class="overlay__foot">NO GENERATIVE AI ART &mdash; EVERY BRICK IS BUILT FROM CODE</div>
+          <div class="overlay__hint is-hidden" id="sound-hint">&#128266; CLICK ANYWHERE TO ENABLE SOUND</div>
+        </div>
+      </div>
+
+      <!-- ============ CODEX ============ -->
+      <div id="codex" class="overlay hidden">
+        <div class="overlay__box overlay__box--wide">
+          <div class="overlay__badge">BUILD MANUAL</div>
+          <div class="codex-tabs">
+            <button class="codex-tab is-active" data-tab="towers">TOWERS</button>
+            <button class="codex-tab" data-tab="enemies">ENEMIES</button>
+          </div>
+          <div class="overlay__body" id="codex-body"></div>
+          <div class="overlay__body is-hidden" id="codex-enemies"></div>
+          <button class="brick-btn brick-btn--primary" id="codex-close">CLOSE</button>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>

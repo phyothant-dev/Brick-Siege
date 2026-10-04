@@ -1,0 +1,344 @@
+================================================================================
+BRICK SIEGE - HOW TO PLAY
+================================================================================
+
+You defend a LEGO fortress from waves of brick creatures, or you play the other
+side and lead the assault. Both sides are playable and both can win, from the
+same six maps and the same four themes.
+
+Everything you build is made of bricks. Nothing is downloaded - every tower,
+creature, tree and mountain is generated when the game loads.
+
+
+--------------------------------------------------------------------------------
+1. THE TWO SIDES
+--------------------------------------------------------------------------------
+
+Choose your side on the title screen. You can switch sides from the pause menu
+at any time.
+
+  DEFENDER   You own the fortress. Build towers on the empty studs, pay off the
+             25 waves, and stop the lane from ever reaching the gate.
+
+  ATTACKER   The fortress belongs to the defender. You have no towers of your
+             own - you drop creatures at the gates and walk them down the lane
+             until they break in.
+
+The win condition is different on each side, so read the objective line at the
+top of the screen if you are ever unsure which one you are playing.
+
+
+--------------------------------------------------------------------------------
+2. CONTROLS
+--------------------------------------------------------------------------------
+
+CAMERA
+  Drag with the left mouse button, or with one finger, to pan.
+  Right-drag also pans.
+  WASD or the arrow keys also pan.
+  Scroll wheel, or pinch with two fingers, to zoom.
+  On a touchscreen, twist two fingers to turn the view, and drag two fingers
+  up or down to change the pitch. The turn is limited either side of straight
+  on, so the board never flips over.
+
+BUILDING (defender)
+  Click or tap a tower in the shop, then click an empty stud to place it.
+  Tapping a placed tower selects it, which highlights anything you can merge.
+  Sell with the SELL button on the selection panel, or with Delete / Backspace.
+  Selling refunds 60% of everything poured into the tower.
+
+  Keys 1-8 select a tower:
+    1 Brick Shooter    2 Mortar        3 Freezer      4 Tesla Coil
+    5 Sprayer          6 Long Shot     7 Cluster      8 Beacon
+
+DEPLOYING (attacker)
+  Click or tap a creature in the palette, then click one of the marked tiles.
+  Press the same number again, or tap the palette again, to cancel.
+
+  Keys 1-9 select a creature:
+    1 Stud Slime       2 Bone Builder  3 Crumble Zombie
+    4 Bow Brick        5 Ghost Brick   6 Gun Brick
+    7 Brick Demon      8 Rocket Brick  9 The Overlord
+
+  Q cycles through the creatures you can afford.
+
+OTHER KEYS
+  P            pause / unpause
+  SPACE        defender: send the next wave early, earning 3 bricks for every
+               second of build clock you skip
+               menu: start the run
+  ESCAPE       cancel the current selection, deployment or merge;
+               if nothing is selected, opens the pause menu
+  C            merge the selected tower with a matching neighbour
+  X            switch between 1x and 2x game speed
+  H            open or close the codex
+  M            mute or unmute
+
+
+--------------------------------------------------------------------------------
+3. DEFENDER - HOW TO PLAY
+--------------------------------------------------------------------------------
+
+YOUR GOAL
+  Survive all 25 waves with fortress health above zero. The fortress has 20 HP.
+  Each creature that reaches the gate removes its "leak" value, so letting a
+  Stud Slime through costs 1, a Brick Demon costs 3, and an Overlord costs 10.
+
+MONEY
+  You start with 260 bricks.
+  You earn more by clearing waves - the payout for each wave is listed in the
+  wave preview, and it grows from 40 bricks early on to 600 for the last wave.
+  Selling a tower refunds 60% of what you paid for it, so a bad early tower is
+  never a disaster.
+
+THE BUILD CLOCK
+  You have 30 seconds to place your first tower before wave 1 starts.
+  After that you get 18 seconds between waves. Use the clock: a tower placed
+  early earns more waves of shooting for the same bricks.
+  Press SPACE to call the next wave early. You are paid 3 bricks for every
+  second of the clock you skip, so a confident early call is real money.
+
+WHERE YOU CAN BUILD
+  Any stud that is not part of a lane and not part of the fortress. Lanes are
+  the studded paths the creatures walk; leave them clear or you will block
+  your own guns.
+
+MERGING - THE MAIN WAY TO GET STRONG
+  Drop a second tower of the same type on top of an existing one and the two
+  merge into a stronger single tower.
+
+    MK I  ->  MK II  ->  MK III
+
+  MK II and MK III towers hit far harder, reach further and reload faster.
+  MK III is the strongest thing you can build. Merging is free - it costs no
+  bricks, only the space to place a matching pair.
+
+COMBINING RANGE
+  Two towers merge when they are the same type, the same tier, and within 3
+  studs of each other. Matching towers you drop next to each other on purpose
+  will merge whether or not you meant them to.
+
+
+--------------------------------------------------------------------------------
+4. DEFENDER - THE NINE TOWERS
+--------------------------------------------------------------------------------
+
+ BRICK SHOOTER   60 bricks
+   The dependable one. Cheap, accurate, no tricks. Range 3.2.
+   MK I    8.5 dmg   every 0.60s
+   MK II  13.5 dmg   every 0.55s   range 3.6
+   MK III   20 dmg   every 0.50s   range 4.1
+
+ MORTAR         110 bricks
+   Lobs shells that splash over a wide area. Slow, so it is useless against
+   fast swarms on its own. MK III fires two shells at once.
+   MK I    26 dmg   every 1.90s   splash 1.1
+   MK II   40 dmg   every 1.75s   splash 1.35
+   MK III  58 dmg   every 1.60s   splash 1.6, double shell
+
+ FREEZER          95 bricks
+   Does very little damage but chills everything it hits, slowing it by up to
+   55%. Pair it with anything else and that tower does far more work.
+   MK I     7 dmg   every 1.00s   -35% speed for 1.6s
+   MK II   11 dmg   every 0.90s   -45% speed for 2.0s
+   MK III  16 dmg   every 0.80s   -55% speed for 2.4s
+
+ TESLA COIL      130 bricks
+   Arcs between creatures, so one shot can hit several. The damage falls off
+   with each jump, but against a tight pack it is the best damage in the game.
+   MK I    11 dmg   every 1.15s   chains to 1 extra
+   MK II   17 dmg   every 1.00s   chains to 2 extra
+   MK III  24 dmg   every 0.90s   chains to 3 extra
+
+ SPRAYER         100 bricks
+   Short range, but the mist poisons and keeps working after the shot lands.
+   Poison damage is what actually kills - the spray itself only ticks them
+   down and sets it up.
+   MK I     3 dmg +  6 poison/sec for 3.0s
+   MK II    5 dmg + 10 poison/sec for 3.5s
+   MK III   7 dmg + 16 poison/sec for 4.0s
+
+ LONG SHOT        95 bricks
+   Enormous range and enormous damage, but very slow to reload. Nothing else
+   reaches this far, so it covers the back of a long lane on its own.
+   MK I    44 dmg   every 2.3s   range 6.4
+   MK II   72 dmg   every 2.1s   range 7.0
+   MK III 108 dmg   every 1.9s   range 7.6
+
+ CLUSTER          85 bricks
+   Chunky short-range shells that splash and chill a whole group. Weak on a
+   single target, devastating against anything bunched up.
+   MK I    12 dmg   every 1.4s   splash 1.3, -30% speed
+   MK II   19 dmg   every 1.3s   splash 1.5, -35% speed
+   MK III  28 dmg   every 1.2s   splash 1.7, -40% speed
+
+ BEACON           70 bricks
+   Deals no damage at all. It projects a field that makes nearby towers hit
+   harder and fire faster. Put it in the middle of a cluster.
+   MK I    +18% damage, +12% speed to towers within 2.6
+   MK II   +28% damage, +18% speed to towers within 3.0
+   MK III  +40% damage, +25% speed to towers within 3.4
+
+
+--------------------------------------------------------------------------------
+5. ATTACKER - HOW TO PLAY
+--------------------------------------------------------------------------------
+
+YOUR GOAL
+  Break the fortress before the 300 second clock runs out. The fortress has
+  20 HP. Every creature that reaches the gate removes its leak value.
+
+WHERE YOU CAN DEPLOY - LOOK FOR THE ARROWS
+  At the start of each lane there is a floating blue arrow pointing down at the
+  ground, with a ring under it. Those arrows are your deployment points.
+
+    - The arrows are always visible on your turn. You do not need to select a
+      creature first to see them.
+    - Select a creature and the arrows brighten and bob faster.
+    - The marked area covers the first 3 tiles of each lane, just inside the
+      gate.
+    - FOUR PATHS has four gates, so you get four arrows, one on each side.
+
+  You can only drop creatures on a marked tile. This is deliberate: a creature
+  has to walk the whole lane and fight through the defence, so dropping one
+  right next to the fortress would skip the entire puzzle.
+
+MONEY
+  You start with 160 bricks and earn 5 bricks every second, so the clock is
+  also your income. Every second you spend thinking is a creature you cannot
+  afford.
+
+REWARDS FOR BREAKING THINGS
+  Every defender tower you destroy pays you 45 bricks. If it was a merged
+  MK II or MK III tower, you get 70. So you are paid for dismantling the
+  defence as well as for reaching the gate.
+
+SIEGE
+  Your creatures deal triple damage to defender towers. That is what lets you
+  chew through a merged MK III line that would otherwise be untouchable, and
+  it is why picking fights with towers is often worth more than rushing the
+  gate.
+
+
+--------------------------------------------------------------------------------
+6. ATTACKER - THE NINE CREATURES
+--------------------------------------------------------------------------------
+
+  #  CREATURE          COST    HP     SPEED   LEAK
+  -  ----------------  ------  -----  ------  ----
+  1  Stud Slime         20      42    1.05     1
+  2  Bone Builder       35      34    1.55     1
+  3  Crumble Zombie     45      98    0.72     2
+  4  Bow Brick          70      46    1.85     1
+  5  Ghost Brick        55      58    1.38     1
+  6  Gun Brick          85      78    1.50     1
+  7  Brick Demon        80     215    0.62     3
+  8  Rocket Brick      110     165    1.05     2
+  9  The Overlord      150    1500    0.48    10
+
+  Speed is in tiles per second. Leak is fortress damage if it gets home.
+
+  Stud Slime     Cheap and endless. Filler, but filler is what pays for the
+                 next wave of units.
+  Bone Builder   Very fast and very cheap. Good for swamping a gap.
+  Crumble Zombie Slow, sturdy, and hits the fortress for 2.
+  Bow Brick      The fastest thing in the game, and it shoots your towers from
+                 3.4 tiles out. Kill it early or it thins your defence for you.
+  Ghost Brick    Quick and slippery.
+  Gun Brick      Ranged. Can shoot the towers it passes.
+  Brick Demon    A real wall of HP, and costs 3 fortress damage.
+  Rocket Brick   Heavy ranged hitter, and costs 2 fortress damage.
+  The Overlord   Enormous HP and 10 fortress damage in one hit. Save it for
+                 when the gate is already weak, or use it as a battering ram
+                 against a merged tower line.
+
+  On the defender side the wave health rises 8.5% every wave, and wave speed
+  creeps up too. A creature that walked through wave 1 will not survive wave
+  20, so you have to keep upgrading the pressure, not just repeating yourself.
+
+
+--------------------------------------------------------------------------------
+7. THE SIX MAPS
+--------------------------------------------------------------------------------
+
+  SPIRAL       Long sweeping lanes that curl around the keep. Long Shot and
+               Mortar shine here because every lane passes the same ground
+               twice.
+  CROSSFIRE    Arms shoot in from every side and meet at the gate. You need
+               coverage on all four approaches or one side is a free walk.
+  SERPENT      Saw-tooth runs with tight switchbacks. Slow guns struggle; the
+               Freezer keeps things slowed long enough for the others.
+  RINGS        Concentric circuits. Every tower covers two approaches, so
+               range matters more than raw damage.
+  MAZE         Organic switchbacks, no two runs alike. The hardest map to
+               plan and the easiest to get surprised on.
+  FOUR PATHS    Four roads crossing at the fortress. Hold every arm, or break
+               in from any of them.
+
+
+--------------------------------------------------------------------------------
+8. THE FOUR THEMES
+--------------------------------------------------------------------------------
+
+  Pick a theme on the title screen. It applies instantly and can be changed
+  mid-run from the pause menu.
+
+  FOREST     Grass and woodland. Broadleaf trees, pines, fallen logs,
+             undergrowth, a cut stump and a mossy boulder.
+  DESERT     Warm sand. Cacti, palms, obelisks, a stepped pyramid and a
+             sphinx.
+  ARCTIC     Snow and ice. Frosted pines, ice spires, icebergs, three polar
+             bears and an igloo.
+  VOLCANO    Ash and lava. Charred trunks, obsidian shards, and a volcano
+             with a glowing crater that lights up the scene.
+
+  A theme only changes the scenery. The baseplate, the lanes and the fortress
+  are identical on every theme, so no theme makes a map easier or harder.
+
+  The scenery is scattered in loose clumps with clearings between them, so it
+  grows like real woodland rather than standing in rings around the board.
+  Nothing is ever placed on the baseplate, so it never hides a lane or a
+  buildable stud.
+
+
+--------------------------------------------------------------------------------
+9. STRATEGY NOTES
+--------------------------------------------------------------------------------
+
+DEFENDING
+  - Cover the early lanes cheaply, then merge. Four MK I shooters merged into
+    two MK IIs is far stronger than four MK I shooters.
+  - The Freezer multiplies every other tower. Chill the lane first, then let
+    the damage land.
+  - The Beacon is only worth bricks next to other towers. On its own it does
+    nothing at all.
+  - Look at what is actually coming. A wave preview that lists 17 Zombies
+    wants a Freezer and a Cluster, not a Long Shot.
+  - If a lane is not defended, the creatures will go around it. Walk each lane
+    with your finger before you commit your money.
+  - Selling at 60% means a badly placed early tower is cheap to fix. Do not
+    be precious about your first placement.
+
+ATTACKING
+  - Spread across gates. The defender has to cover all of them, and on
+    CROSSFIRE and FOUR PATHS that is a lot of ground.
+  - The 45 brick bounty is real money. Two Gun Brick kills early can pay for
+    the Overlord.
+  - Overlords cost 10 fortress damage each. Three of them end the run, but
+    they are slow, so a Freezer-heavy defence will hold them a long time.
+  - Watch the clock. At 5 bricks a second, a 300 second run is worth roughly
+    1500 bricks of spending plus whatever you loot. Do not sit on it.
+
+
+--------------------------------------------------------------------------------
+10. END OF RUN
+--------------------------------------------------------------------------------
+
+  When a run ends you get a summary: waves survived or fortress damage dealt,
+  bricks earned and spent, towers merged, and creatures lost. From there you
+  can restart the same map, go back to the menu and change map, map or theme,
+  or play the other side.
+
+  Settings, chosen side, map and theme are all remembered between sessions.
+
+================================================================================
