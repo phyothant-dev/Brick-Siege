@@ -286,10 +286,12 @@ body {
 /* ================= INSPECTOR ================= */
 #inspector {
   position: absolute;
-  right: 12px;
-  top: 92px;
-  width: 232px;
-  padding: 0 0 12px;
+  right: max(4px, env(safe-area-inset-right));
+  top: clamp(48px, 8vh, 72px);
+  width: min(200px, 40vw);
+  padding: 0 0 6px;
+  max-height: min(36vh, 46dvh);
+  overflow-y: auto;
   z-index: 20;
 }
 
@@ -511,7 +513,11 @@ body {
     min-height: 30px;
   }
   #inspector {
-    max-height: 40vh;
+    right: 4px;
+    top: 48px;
+    width: min(180px, 42vw);
+    max-height: 28vh;
+    max-height: 28dvh;
     overflow-y: auto;
   }
 }
