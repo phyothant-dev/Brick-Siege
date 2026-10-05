@@ -457,15 +457,13 @@ body {
     background: rgba(255, 255, 255, 0.25);
   }
   #attack-bar .build-btn {
-    flex: 0 0 80px;
-    width: 80px;
-    min-width: 80px;
-    padding: 2px;
-    gap: 2px;
+    width: auto;
+    min-width: 0;
+    padding: 2px 1px;
+    gap: 0;
     border-width: 2px;
-    border-left-width: 5px;
-    min-height: 44px;
-    scroll-snap-align: start;
+    border-left-width: 3px;
+    min-height: 36px;
   }
   #attack-bar .build-btn__icon {
     margin: 0 auto;
@@ -491,7 +489,7 @@ body {
 
 @media (min-width: 641px) and (max-width: 1000px) {
   .attack-bar__row {
-    grid-template-columns: repeat(9, 1fr);
+    grid-template-columns: repeat(5, 1fr);
   }
 }
 
@@ -1539,4 +1537,16 @@ body[data-side='attacker'] .build-btn {
   #shop-bar, #attack-bar {
     bottom: max(20px, env(safe-area-inset-bottom)) !important;
   }
+}
+
+.overlay--full {
+  background: radial-gradient(ellipse at 50% 20%, rgba(33,33,33,0.92) 0%, rgba(33,33,33,0.98) 70%, #212121 100%),
+              repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0 2px, transparent 2px 40px),
+              var(--lego-black);
+  backdrop-filter: blur(0px);
+}
+.overlay--full .overlay__box {
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
