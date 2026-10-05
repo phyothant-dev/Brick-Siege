@@ -227,14 +227,30 @@ body {
 
 /* On a short landscape phone the two buttons stack instead of squeezing. */
 @media (max-height: 460px) {
-  .overlay__actions {
-    gap: 6px;
+  .overlay {
+    padding: 4px;
   }
-  .overlay__actions .brick-btn {
-    min-width: 0;
-    padding: 8px 12px;
-    font-size: 0.85rem;
+  .overlay__box {
+    padding: 8px 8px 6px;
+    max-height: 96vh;
+    max-height: 96dvh;
+    overflow-y: auto;
   }
+  .overlay__title {
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+  }
+  .overlay__tag {
+    font-size: 0.62rem;
+  }
+  .overlay__body {
+    font-size: 0.76rem;
+  }
+  .overlay__grid { gap: 4px; }
+  .map-card { padding: 4px 4px 5px; }
+  .map-card__thumb { height: 52px; }
+  .codex-grid { gap: 4px; }
+  .codex-card { padding: 5px; font-size: 0.8rem; }
 }
 
 /* Muted state for the sound button. */
