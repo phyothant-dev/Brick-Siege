@@ -315,6 +315,11 @@ export class Ui {
     });
 
     this.pauseBtn.addEventListener('click', () => this.togglePause());
+    const hudToggle = document.getElementById('hud-toggle');
+    hudToggle?.addEventListener('click', () => {
+      document.body.classList.toggle('hud-hidden');
+    });
+
 
     this.mapGrid?.addEventListener('click', (e) => {
       const card = (e.target as HTMLElement).closest<HTMLElement>('.map-card');
