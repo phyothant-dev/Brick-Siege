@@ -40,7 +40,7 @@ const MIX: ReadonlyArray<TowerId> = [
  * Enough to feel like a real defence, sparse enough that the attacker can find
  * and break a route.
  */
-const DENSITY = 0.085;
+const DENSITY = 0.14;
 
 /** Offsets tried around a lane cell, nearest ring first. */
 const RING: ReadonlyArray<readonly [number, number]> = [
