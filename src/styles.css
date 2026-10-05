@@ -531,11 +531,12 @@ body {
   }
   #inspector {
     right: 4px;
-    top: 48px;
+    top: max(56px, 10vh);
     width: min(180px, 42vw);
-    max-height: 28vh;
-    max-height: 28dvh;
+    max-height: min(22vh, 26dvh);
+    max-height: min(22dvh, 26dvh);
     overflow-y: auto;
+    bottom: auto;
   }
 }
 
@@ -1469,7 +1470,7 @@ body[data-side='attacker'] .build-btn {
   #top-bar .btn-compact { padding: 0 2px; font-size: 0.4rem; }
   #shop-bar { padding: 1px; gap: 1px; max-height: 34px; overflow-x: auto; }
   .build-btn { min-height: 22px; flex: 0 0 70px; }
-  #inspector { top: 20px; right: 2px; width: min(140px, 36vw); max-height: 26vh; max-height: 26dvh; font-size: 0.42rem; }
+  #inspector { top: max(24px, 6vh); right: 2px; width: min(140px, 36vw); max-height: min(20vh, 24dvh); max-height: min(20dvh, 24dvh); font-size: 0.42rem; bottom: auto; }
 }
 
 .hud-toggle {
