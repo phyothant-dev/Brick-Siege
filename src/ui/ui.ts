@@ -614,6 +614,7 @@ export class Ui {
     const tower = this.game.selected;
     if (!tower) {
       this.inspector.classList.add('hidden');
+      document.body.classList.remove('hud-hidden');
       this.fxHideRangeWhenIdle();
       return;
     }
@@ -621,6 +622,7 @@ export class Ui {
     const spec = TOWERS[tower.type];
     const tier = tierSpec(tower.type, tower.tier);
     this.inspector.classList.remove('hidden');
+    document.body.classList.add('hud-hidden');
 
     this.inspName.textContent = spec.name;
     this.inspTier.innerHTML = Array.from(
