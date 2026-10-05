@@ -81,7 +81,7 @@ export class Ui {
   private codexBody = $('codex-body');
   private codexEnemies = $('codex-enemies');
 
-  private overlayMode: 'menu' | 'paused' | 'won' | 'lost' = 'menu';
+  private overlayMode: 'intro' | 'menu' | 'paused' | 'won' | 'lost' = 'intro';
   private lastThreat = '';
 
   constructor(game: Game) {
@@ -96,7 +96,7 @@ export class Ui {
     this.wireButtons();
     this.wireEvents();
 
-    this.showOverlay('menu');
+    this.showOverlay('intro');
     this.refreshHud();
   }
 
@@ -354,7 +354,7 @@ export class Ui {
       // Restart first so the menu always shows a fresh, unstarted board rather
       // than a half-finished run.
       this.game.restart();
-      this.showOverlay('menu');
+      this.showOverlay('intro');
     });
 
     this.ovPrimary.addEventListener('click', () => {
@@ -772,7 +772,7 @@ export class Ui {
       .join('')}</div>`;
   }
 
-  showOverlay(mode: 'menu' | 'paused' | 'won' | 'lost' | null): void {
+  showOverlay(mode: 'intro' | 'menu' | 'paused' | 'won' | 'lost' | null): void {
     if (!mode) {
       this.overlay.classList.add('hidden');
       this.overlayMode = 'menu';
@@ -794,6 +794,15 @@ export class Ui {
     $('map-picker')?.classList.toggle('hidden', !menuOnly);
     this.overlayBox.querySelector('.side-picker')?.classList.toggle('is-hidden', !menuOnly);
     this.overlayBox.querySelector('.theme-picker')?.classList.toggle('is-hidden', !menuOnly);
+
+    if (mode === 'intro') {
+      this.ovTitle.textContent = 'BRICK SIEGE';
+      this.ovTag.textContent = 'TOWER DEFENSE';
+      this.ovBody.innerHTML = `<p style="margin-bottom:12px; opacity:.9">Fortify the keep, stop the horde.</p>`;
+      this.ovPrimary.textContent = 'PLAY';
+      this.ovPrimary.onclick = () => { this.ovPrimary.onclick = null; this.showOverlay('menu'); };
+      return;
+    }
 
     if (mode === 'menu') {
       this.ovTitle.textContent = 'BRICK SIEGE';
