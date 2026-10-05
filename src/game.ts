@@ -881,6 +881,7 @@ export class Game {
         0xf2cd37,
         1.4,
       );
+      root.removeFromParent();
     }
     this.towerViews.delete(tower.uid);
     this.towerRoots.delete(tower.uid);
