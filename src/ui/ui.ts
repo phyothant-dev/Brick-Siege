@@ -794,8 +794,7 @@ export class Ui {
       this.ovTitle.textContent = 'BRICK SIEGE';
       this.ovTag.textContent = 'MASTER BUILDER DEFENSE';
       this.ovBody.innerHTML = `
-        <p>A horde of rogue minifigures is walking straight at your fortress.
-        Build, combine and swap your defences for <strong>${TOTAL_WAVES} waves</strong>.</p>
+        <p>Choose your side. Defend against <strong>${TOTAL_WAVES} waves</strong>, or lead the assault from the gates.</p>
         <ul>
           <li>Pick a brick (1-5) and click an empty stud to build</li>
           <li>Click a built tower, then <strong>COMBINE</strong> two matching ones to tier up</li>
@@ -820,12 +819,18 @@ export class Ui {
     const s = this.game.state;
     const minutes = Math.max(0, Math.round(((s.stats.endTime ?? performance.now()) - s.stats.startTime) / 60000));
     const won = mode === 'won';
+    const attacking = this.game.side === 'attacker';
 
     this.ovBody.innerHTML = this.runSummary();
-    this.ovTitle.textContent = won ? 'FORTRESS HELD' : 'FORTRESS BREACHED';
-    this.ovTag.textContent = won
-      ? `ALL ${TOTAL_WAVES} WAVES SURVIVED`
-      : `OVERRUN ON WAVE ${s.wave}`;
+    if (attacking) {
+      this.ovTitle.textContent = won ? 'FORTRESS BREACHED' : 'FORTRESS HELD';
+      this.ovTag.textContent = won ? 'ASSAULT SUCCEEDED' : 'ASSAULT REPULSED';
+    } else {
+      this.ovTitle.textContent = won ? 'FORTRESS HELD' : 'FORTRESS BREACHED';
+      this.ovTag.textContent = won
+        ? `ALL ${TOTAL_WAVES} WAVES SURVIVED`
+        : `OVERRUN ON WAVE ${s.wave}`;
+    }
 
     this.ovBody.innerHTML = `
       <div class="result-grid">
@@ -839,9 +844,9 @@ export class Ui {
         <div class="result-cell"><span>MINUTES</span><b>${minutes}</b></div>
       </div>
       <p>${
-        won
-          ? 'The horde never got past the gate. Nobody has to rebuild the wall.'
-          : 'The gate fell. Swap in ice against the big ones and try the combo timing again.'
+        attacking
+          ? (won ? 'The gate is down. The assault succeeded.' : 'The fortress held firm. The assault was repulsed.')
+          : (won ? 'The horde never got past the gate. Nobody has to rebuild the wall.' : 'The gate fell. Swap in ice against the big ones and try the combo timing again.')
       }</p>`;
 
     this.ovPrimary.textContent = won ? 'BUILD AGAIN' : 'REBUILD';
