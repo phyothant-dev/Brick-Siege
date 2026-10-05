@@ -428,28 +428,29 @@ body {
   #attack-bar .build-btn {
     width: auto;
     min-width: 0;
-    padding: 1px 1px;
-    gap: 0px;
+    padding: 2px 1px;
+    gap: 0;
     border-width: 2px;
-    border-left-width: 4px;
+    border-left-width: 3px;
     min-height: 0;
   }
   #attack-bar .build-btn__icon {
     margin: 0 auto;
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
   }
   #attack-bar .build-btn__name {
-    font-size: 0.38rem;
+    font-size: 0.36rem;
     line-height: 1;
     text-align: center;
     overflow-wrap: anywhere;
   }
   #attack-bar .build-btn__meta {
-    display: none;
+    display: block;
+    font-size: 0.34rem;
   }
   #attack-bar .build-btn__cost {
-    font-size: 0.4rem;
+    font-size: 0.38rem;
   }
 }
 
@@ -462,39 +463,39 @@ body {
 /* ---- Short landscape phones: give the board back its height ---- */
 @media (orientation: landscape) and (max-height: 500px) {
   #top-bar {
-    padding: 4px 6px;
-    gap: 6px;
+    padding: 2px 5px;
+    gap: 4px;
   }
   #top-bar .stat--threat {
     display: none;
   }
   .stat__label {
-    font-size: 0.5rem;
+    font-size: 0.48rem;
   }
   .stat__value {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
   }
   #shop-bar {
-    padding: 5px;
-    gap: 4px;
+    padding: 3px;
+    gap: 3px;
   }
   .build-btn {
-    min-height: 38px;
+    min-height: 34px;
     padding: 2px;
     border-width: 2px;
   }
   .build-btn__icon {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
   }
   .build-btn__name {
-    font-size: 0.46rem;
+    font-size: 0.44rem;
   }
   .build-btn--wave {
-    min-height: 34px;
+    min-height: 30px;
   }
   #inspector {
-    max-height: 46vh;
+    max-height: 40vh;
     overflow-y: auto;
   }
 }
@@ -1407,12 +1408,21 @@ body[data-side='attacker'] .build-btn {
 }
 
 @media (orientation: landscape) and (max-height: 420px) {
-  #attack-bar .build-btn__icon { width: 18px; height: 18px; }
+  #attack-bar {
+    bottom: max(2px, env(safe-area-inset-bottom));
+    left: 2px;
+    right: 2px;
+  }
+  #attack-bar .build-btn__icon { width: 14px; height: 14px; }
   #attack-bar .build-btn__name { display: none; }
-  #attack-bar .build-btn { padding: 2px 0; }
-  #top-bar { padding: 2px 4px; gap: 4px; }
-  #top-bar .stat__label { font-size: 0.46rem; }
-  #top-bar .stat__value { font-size: 0.76rem; }
-  #shop-bar { padding: 3px; gap: 3px; }
-  .build-btn { min-height: 32px; }
+  #attack-bar .build-btn__key { top: 1px; right: 1px; font-size: 0.5rem; padding: 0 2px; }
+  #attack-bar .build-btn { padding: 1px 0; border-width: 1px; border-left-width: 2px; min-height: 0; }
+  .attack-bar__row { gap: 2px; }
+  #top-bar { padding: 1px 3px; gap: 2px; }
+  #top-bar .stat__label { font-size: 0.44rem; line-height: 1; }
+  #top-bar .stat__value { font-size: 0.68rem; line-height: 1; }
+  #top-bar .stat { padding: 1px 3px; }
+  #shop-bar { padding: 2px; gap: 2px; }
+  .build-btn { min-height: 28px; }
+  #inspector { max-height: 36vh; font-size: 0.46rem; }
 }
