@@ -436,11 +436,12 @@ body {
     right: 4px;
     transform: none;
     max-width: none;
+    padding: 4px 4px 2px;
   }
   .attack-bar__row {
     display: grid;
-    grid-template-columns: repeat(9, 1fr);
-    gap: 3px;
+    grid-template-columns: repeat(9, minmax(0,1fr));
+    gap: 2px;
     overflow-x: visible;
   }
   #attack-bar .build-btn {
@@ -454,11 +455,11 @@ body {
   }
   #attack-bar .build-btn__icon {
     margin: 0 auto;
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
   }
   #attack-bar .build-btn__name {
-    font-size: 0.36rem;
+    font-size: 0.38rem;
     line-height: 1;
     text-align: center;
     overflow-wrap: anywhere;
@@ -470,6 +471,7 @@ body {
   #attack-bar .build-btn__cost {
     font-size: 0.38rem;
   }
+  .attack-bar__hint { font-size: 0.48rem; }
 }
 
 @media (min-width: 641px) and (max-width: 1000px) {
@@ -1434,19 +1436,22 @@ body[data-side='attacker'] .build-btn {
     bottom: max(1px, env(safe-area-inset-bottom));
     left: 1px;
     right: 1px;
+    max-height: 34px;
   }
-  #attack-bar .build-btn__icon { width: 12px; height: 12px; }
-  #attack-bar .build-btn__name { display: none; }
-  #attack-bar .build-btn__key { top: 1px; right: 1px; font-size: 0.45rem; padding: 0 2px; }
-  #attack-bar .build-btn { padding: 0; border-width: 1px; border-left-width: 2px; min-height: 0; }
+  .attack-bar__hint { display: none; }
   .attack-bar__row { gap: 1px; }
-  #top-bar { padding: 0 2px; gap: 1px; height: 24px; align-items: center; }
-  #top-bar .stat__label { font-size: 0.4rem; line-height: 1; }
-  #top-bar .stat__value { font-size: 0.6rem; line-height: 1; }
+  #attack-bar .build-btn__icon { width: 14px; height: 14px; }
+  #attack-bar .build-btn__name { display: none; }
+  #attack-bar .build-btn__meta { display: none; }
+  #attack-bar .build-btn__key { top: 1px; right: 1px; font-size: 0.4rem; padding: 0 1px; }
+  #attack-bar .build-btn { padding: 1px 0; border-width: 1px; border-left-width: 2px; min-height: 22px; }
+  #top-bar { padding: 0 2px; gap: 1px; height: 22px; align-items: center; }
+  #top-bar .stat__label { font-size: 0.38rem; line-height: 1; }
+  #top-bar .stat__value { font-size: 0.56rem; line-height: 1; }
   #top-bar .stat { padding: 0 2px; }
-  #shop-bar { padding: 1px; gap: 1px; }
+  #shop-bar { padding: 1px; gap: 1px; max-height: 36px; overflow-x: auto; }
   .build-btn { min-height: 24px; }
-  #inspector { top: 24px; right: 2px; width: min(150px, 38vw); max-height: 30vh; max-height: 30dvh; font-size: 0.44rem; }
+  #inspector { top: 22px; right: 2px; width: min(140px, 36vw); max-height: 28vh; max-height: 28dvh; font-size: 0.42rem; }
 }
 
 .hud-toggle {
