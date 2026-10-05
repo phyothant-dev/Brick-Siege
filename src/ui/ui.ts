@@ -796,11 +796,12 @@ export class Ui {
     this.overlayBox.querySelector('.theme-picker')?.classList.toggle('is-hidden', !menuOnly);
 
     if (mode === 'intro') {
+      this.overlayBox.classList.add('intro-anim');
       this.ovTitle.textContent = 'BRICK SIEGE';
       this.ovTag.textContent = 'TOWER DEFENSE';
       this.ovBody.innerHTML = `<p style="margin-bottom:12px; opacity:.9">Fortify the keep, stop the horde.</p>`;
       this.ovPrimary.textContent = 'PLAY';
-      this.ovPrimary.onclick = () => { this.ovPrimary.onclick = null; this.showOverlay('menu'); };
+      this.ovPrimary.onclick = () => { this.ovPrimary.onclick = null; this.overlayBox.classList.remove('intro-anim'); this.showOverlay('menu'); };
       return;
     }
 

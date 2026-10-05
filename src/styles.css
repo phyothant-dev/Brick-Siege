@@ -1498,3 +1498,18 @@ body[data-side='attacker'] .build-btn {
 .hud-hidden .hud-toggle {
   opacity: 0.5;
 }
+
+@keyframes introFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.overlay__box.intro-anim .overlay__title,
+.overlay__box.intro-anim .overlay__tag,
+.overlay__box.intro-anim .overlay__body,
+.overlay__box.intro-anim .overlay__actions {
+  animation: introFade .4s ease forwards;
+  opacity: 0;
+}
+.overlay__box.intro-anim .overlay__tag { animation-delay: .05s; }
+.overlay__box.intro-anim .overlay__body { animation-delay: .1s; }
+.overlay__box.intro-anim .overlay__actions { animation-delay: .15s; }
