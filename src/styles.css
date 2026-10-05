@@ -1461,10 +1461,12 @@ body[data-side='attacker'] .build-btn {
   #attack-bar .build-btn__meta { display: none; }
   #attack-bar .build-btn__key { top: 1px; right: 1px; font-size: 0.4rem; padding: 0 1px; }
   #attack-bar .build-btn { flex: 0 0 64px; width: 64px; min-width: 64px; padding: 1px 0; border-width: 1px; border-left-width: 2px; min-height: 28px; }
-  #top-bar { padding: 0 2px; gap: 1px; height: 20px; align-items: center; }
-  #top-bar .stat__label { font-size: 0.36rem; line-height: 1; }
-  #top-bar .stat__value { font-size: 0.54rem; line-height: 1; }
-  #top-bar .stat { padding: 0 1px; }
+  #top-bar { padding: 0 1px; gap: 1px; height: 18px; align-items: center; }
+  #top-bar .stat { padding: 0 1px; min-height: 0; }
+  #top-bar .stat__label { font-size: 0.32rem; line-height: 1; }
+  #top-bar .stat__value { font-size: 0.48rem; line-height: 1; }
+  #top-bar .brick-btn { padding: 0 2px; font-size: 0.4rem; min-height: 16px; border-width: 1px; box-shadow: 1px 1px 0 var(--lego-yellow); }
+  #top-bar .btn-compact { padding: 0 2px; font-size: 0.4rem; }
   #shop-bar { padding: 1px; gap: 1px; max-height: 34px; overflow-x: auto; }
   .build-btn { min-height: 22px; flex: 0 0 70px; }
   #inspector { top: 20px; right: 2px; width: min(140px, 36vw); max-height: 26vh; max-height: 26dvh; font-size: 0.42rem; }
@@ -1513,3 +1515,14 @@ body[data-side='attacker'] .build-btn {
 .overlay__box.intro-anim .overlay__tag { animation-delay: .05s; }
 .overlay__box.intro-anim .overlay__body { animation-delay: .1s; }
 .overlay__box.intro-anim .overlay__actions { animation-delay: .15s; }
+
+@media (orientation: landscape) and (max-height: 480px) {
+  #top-bar .brick-btn,
+  #top-bar .btn-compact {
+    padding: 0 2px !important;
+    font-size: 0.4rem !important;
+    min-height: 16px !important;
+    border-width: 1px !important;
+    box-shadow: 1px 1px 0 var(--lego-yellow) !important;
+  }
+}
