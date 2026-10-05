@@ -111,10 +111,11 @@ function boot(target: HTMLCanvasElement): void {
   let last = performance.now();
   let raf = 0;
 
-  const frame = (now: number): void => {
-    raf = requestAnimationFrame(frame);
   // Let the first frames settle, then pick a quality tier that holds 60.
   window.setTimeout(() => game.stage.autoTune(), 600);
+
+  const frame = (now: number): void => {
+    raf = requestAnimationFrame(frame);
 
     // Clamp so a tab switch or a long GC pause cannot teleport the horde.
     const raw = Math.min(0.05, (now - last) / 1000);

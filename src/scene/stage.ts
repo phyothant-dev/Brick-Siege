@@ -41,6 +41,7 @@ export class Stage {
   onQualityChange: ((q: Quality, fps: number) => void) | null = null;
   private shakeTime = 0;
   private sun!: THREE.DirectionalLight;
+  private lastW = 0; private lastH = 0;
   private readonly canvas: HTMLCanvasElement;
 
   constructor(canvas: HTMLCanvasElement) {
@@ -52,7 +53,8 @@ export class Stage {
       powerPreference: 'high-performance',
       stencil: false,
     });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    const isM = /Android|iPhone|iPad|iPod|IEMobile|WPDesktop/i.test(navigator.userAgent);
+    this.renderer.setPixelRatio(isM ? 1 : Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -118,7 +120,7 @@ export class Stage {
     const dpr = window.devicePixelRatio || 1;
     const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent) || window.innerWidth < 900;
     const cap = isMobile
-      ? (level === 'high' ? 1.5 : level === 'medium' ? 1.25 : 1)
+      ? 1
       : (level === 'high' ? 2 : level === 'medium' ? 1.25 : 1);
     this.renderer.setPixelRatio(Math.min(dpr, cap, isMobile ? 1.75 : 2));
     this.renderer.shadowMap.enabled = level !== 'low';
@@ -264,10 +266,14 @@ export class Stage {
 
   resize(): void {
     const vv = (window as any).visualViewport;
-    const w = vv ? Math.floor(vv.width) : (this.canvas.clientWidth || window.innerWidth);
-    const h = vv ? Math.floor(vv.height) : (this.canvas.clientHeight || window.innerHeight);
+    let w = vv ? Math.floor(vv.width) : (this.canvas.clientWidth || window.innerWidth);
+    let h = vv ? Math.floor(vv.height) : (this.canvas.clientHeight || window.innerHeight);
+    w = Math.max(1, w);
+    h = Math.max(1, h);
+    if (w === this.lastW && h === this.lastH) return;
+    this.lastW = w; this.lastH = h;
     this.renderer.setSize(w, h, false);
-    this.camera.aspect = w / Math.max(1, h);
+    this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
   }
 
