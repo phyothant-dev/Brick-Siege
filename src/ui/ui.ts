@@ -359,6 +359,11 @@ export class Ui {
     });
 
     this.ovPrimary.addEventListener('click', () => {
+      if (this.overlayMode === 'intro') {
+        this.overlayBox.classList.remove('intro-anim');
+        this.showOverlay('menu');
+        return;
+      }
       if (this.overlayMode === 'menu') {
         this.game.begin();
         this.showOverlay(null);
@@ -809,7 +814,7 @@ export class Ui {
       this.ovTag.textContent = 'TOWER DEFENSE';
       this.ovBody.innerHTML = `<p style="margin-bottom:12px; opacity:.9">Fortify the keep, stop the horde.</p>`;
       this.ovPrimary.textContent = 'PLAY';
-      this.ovPrimary.onclick = () => { this.ovPrimary.onclick = null; this.overlayBox.classList.remove('intro-anim'); this.showOverlay('menu'); };
+
       return;
     }
 
