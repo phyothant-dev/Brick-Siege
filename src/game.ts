@@ -757,7 +757,18 @@ export class Game {
         continue;
       }
 
-      enemy.dist += enemy.speed * enemy.slowFactor * dt;
+      const specE = ENEMIES[enemy.type];
+      let canMove = true;
+      if (specE.attackRange && this.state.towers.length) {
+        const p2 = samplePath(enemy.dist, enemy.lane, SIEGE_SAMPLE);
+        let near = false;
+        for (const tower of this.state.towers) {
+          const d = Math.hypot(gxToWorld(tower.gx) - p2.x, gyToWorld(tower.gy) - p2.z);
+          if (d <= specE.attackRange) { near = true; break; }
+        }
+        if (near) canMove = false;
+      }
+      if (canMove) enemy.dist += enemy.speed * enemy.slowFactor * dt;
       // Per-lane: on a four-lane map each arm can be a different length, so a
       // unit must reach the end of *its own* lane to breach.
       if (enemy.dist >= pathLength(enemy.lane)) {
