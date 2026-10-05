@@ -76,9 +76,6 @@ export class Ui {
   private ovTag = $('ov-tag');
   private ovBody = $('ov-body');
   private ovPrimary = $<HTMLButtonElement>('ov-primary');
-  private inspectorDragging = false;
-  private inspDragOffsetX = 0;
-  private inspDragOffsetY = 0;
 
   private ovMenu = $<HTMLButtonElement>('ov-menu');
   private codex = $('codex');
@@ -889,26 +886,4 @@ function weaknessHint(element: ElementId): string {
       return 'skeletons love it, everything else shrugs';
   }
 }
-    this.inspector.addEventListener('pointerdown', (e) => {
-      this.inspectorDragging = true;
-      const rect = this.inspector.getBoundingClientRect();
-      this.inspDragOffsetX = e.clientX - rect.left;
-      this.inspDragOffsetY = e.clientY - rect.top;
-      this.inspector.setPointerCapture(e.pointerId);
-      e.preventDefault();
-    });
-    window.addEventListener('pointermove', (e) => {
-      if (!this.inspectorDragging) return;
-      this.inspector.style.left = (e.clientX - this.inspDragOffsetX) + 'px';
-      this.inspector.style.top = (e.clientY - this.inspDragOffsetY) + 'px';
-      this.inspector.style.right = 'auto';
-      this.inspector.style.bottom = 'auto';
-      this.inspector.style.transform = 'none';
-      e.preventDefault();
-    });
-    window.addEventListener('pointerup', (e) => {
-      if (this.inspectorDragging) {
-        this.inspectorDragging = false;
-        try { this.inspector.releasePointerCapture(e.pointerId); } catch {}
-      }
-    });
+
