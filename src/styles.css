@@ -1550,3 +1550,12 @@ body[data-side='attacker'] .build-btn {
   border: none;
   box-shadow: none;
 }
+
+@media (orientation: landscape) and (max-height: 380px) {
+  #top-bar { height: 16px; }
+  #top-bar .brick-btn { min-height: 14px; font-size: 0.36rem; }
+  #top-bar .stat__label { font-size: 0.3rem; }
+  #top-bar .stat__value { font-size: 0.44rem; }
+  #shop-bar, #attack-bar { bottom: max(16px, env(safe-area-inset-bottom)) !important; }
+  #attack-bar .build-btn { min-height: 22px; }
+}
