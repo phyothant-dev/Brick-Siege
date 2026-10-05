@@ -1559,3 +1559,11 @@ body[data-side='attacker'] .build-btn {
   #shop-bar, #attack-bar { bottom: max(16px, env(safe-area-inset-bottom)) !important; }
   #attack-bar .build-btn { min-height: 22px; }
 }
+@media (orientation: landscape) {
+  #shop-bar, #attack-bar {
+    bottom: max(18px, env(safe-area-inset-bottom)) !important;
+  }
+  #hud-toggle {
+    bottom: max(2px, env(safe-area-inset-bottom));
+  }
+}
