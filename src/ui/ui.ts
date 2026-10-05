@@ -796,6 +796,11 @@ export class Ui {
     this.overlayBox.querySelector('.theme-picker')?.classList.toggle('is-hidden', !menuOnly);
 
     if (mode === 'intro') {
+      this.ovMenu.hidden = true;
+      this.overlayBox.querySelector('.side-picker')?.classList.toggle('is-hidden', true);
+      this.overlayBox.querySelector('.theme-picker')?.classList.toggle('is-hidden', true);
+      $('map-picker')?.classList.toggle('hidden', true);
+      this.overlayBox.classList.remove('overlay__box--compact');
       this.overlayBox.classList.add('intro-anim');
       this.ovTitle.textContent = 'BRICK SIEGE';
       this.ovTag.textContent = 'TOWER DEFENSE';
