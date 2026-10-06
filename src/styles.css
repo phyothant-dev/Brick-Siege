@@ -1510,9 +1510,9 @@ body[data-side='attacker'] .build-btn {
   background-blend-mode: overlay, normal, normal;
 }
 .overlay--full .overlay__box {
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  background: var(--lego-black);
+  border: 8px solid #000;
+  box-shadow: 12px 12px 0px var(--lego-yellow);
 }
 
 @media (orientation: landscape) and (max-height: 380px) {
