@@ -358,6 +358,7 @@ export class Ui {
       if (this.overlayMode === 'intro') {
         this.overlayBox.classList.remove('intro-anim');
         this.ovPrimary.classList.remove('pulse');
+        const c=document.getElementById('game-canvas'); if(c){ c.style.opacity='1'; c.style.visibility='visible'; }
         this.showOverlay('menu');
         return;
       }
