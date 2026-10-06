@@ -1531,3 +1531,9 @@ body[data-side='attacker'] .build-btn {
     bottom: max(2px, env(safe-area-inset-bottom));
   }
 }
+@media (max-height: 560px) {
+  #inspector { top: 44px; max-height: min(28dvh, 36dvh); font-size: 0.46rem; }
+}
+@media (max-height: 460px) {
+  #inspector { top: 36px; max-height: min(24dvh, 32dvh); font-size: 0.44rem; }
+}
