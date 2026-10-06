@@ -1265,7 +1265,7 @@ kbd {
   padding: 16px 18px;
   border: 6px solid #000;
   background: #fff;
-  box-shadow: 8px 8px 0 #3a7c2a inset, 10px 10px 0 #000;
+  box-shadow: 12px 12px 0 #ffcf00;
 }
 .side-picker__label {
   display: block;
