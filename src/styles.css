@@ -1264,7 +1264,7 @@ kbd {
     text-align: center;
     padding: 16px 18px;
     border: 8px solid #000;
-    background: linear-gradient(to bottom, #7fb96e 0%, #5f8a4a 40%, #4b6c3a 100%);
+    background: linear-gradient(to bottom, #4d7c40 0%, #3a5d32 50%, #2f4a28 100%);
     box-shadow: 12px 12px 0 #000;
   }
 .side-picker__label {
