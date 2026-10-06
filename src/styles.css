@@ -1563,5 +1563,7 @@ body[data-side='attacker'] .build-btn {
 #menu .overlay__box {
   border: 10px solid #000;
   box-shadow: 14px 14px 0 #ffcf00;
-  background: var(--lego-black);
+  background: radial-gradient(ellipse at 50% 20%, rgba(33,33,33,0.72) 0%, rgba(33,33,33,0.94) 80%),
+              radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
