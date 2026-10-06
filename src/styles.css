@@ -679,7 +679,13 @@ body {
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 4px;
+  }
+  #shop-bar .build-btn--wave .build-btn__meta,
+  #shop-bar .build-btn--wave .build-btn__meta em,
+  #shop-bar .build-btn--wave .build-btn__meta b {
+    display: inline-block !important;
+    white-space: nowrap;
   }
 }
 
@@ -1569,3 +1575,5 @@ body[data-side='attacker'] .build-btn {
   background-size: 32px 32px;
 }
 .build-btn__meta b#wave-timer{display:inline-block;}
+
+.build-btn--wave .build-btn__meta b#wave-timer { display: inline-block !important; visibility: visible !important; }
