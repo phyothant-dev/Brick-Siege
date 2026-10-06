@@ -513,7 +513,7 @@ export class Game {
   }
 
   startCombining(): void {
-    if (!this.selected) return;
+    if (this.side === 'attacker' || !this.selected) return;
     if (!this.state.findCombinePartner(this.selected)) {
       this.state.toast('NO MATCHING PARTNER IN RANGE', 'bad');
       sfx('deny');

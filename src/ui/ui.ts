@@ -653,11 +653,17 @@ export class Ui {
 
     this.inspElem.innerHTML = `<strong>${ELEMENT_LABEL[spec.element]}</strong> \u2014 ${weaknessHint(spec.element)}`;
 
-    const partner = this.game.state.findCombinePartner(tower);
-    this.combineBtn.disabled = !partner;
-    this.combineBtn.textContent =
-      tower.tier >= MAX_TIER ? 'MAX TIER' : partner ? 'COMBINE' : 'NO PARTNER';
-    this.combineBtn.classList.toggle('is-active', this.game.combining);
+    if (this.game.side === 'attacker') {
+      this.combineBtn.disabled = true;
+      this.combineBtn.textContent = 'COMBINE';
+      this.combineBtn.classList.toggle('is-active', false);
+    } else {
+      const partner = this.game.state.findCombinePartner(tower);
+      this.combineBtn.disabled = !partner;
+      this.combineBtn.textContent =
+        tower.tier >= MAX_TIER ? 'MAX TIER' : partner ? 'COMBINE' : 'NO PARTNER';
+      this.combineBtn.classList.toggle('is-active', this.game.combining);
+    }
     this.sellBtn.textContent = `SELL +${Math.floor(tower.invested * SELL_REFUND)}`;
   }
 

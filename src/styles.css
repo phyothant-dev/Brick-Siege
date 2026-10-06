@@ -391,9 +391,8 @@ body {
   scrollbar-width: none;
 }
 
-#shop-bar::-webkit-scrollbar {
-  display: none;
-}
+#shop-bar::-webkit-scrollbar { display: none; }
+#shop-bar { scrollbar-width: none; }
 
 /* ---- Pointer-capability switches ----
    Keyboard help is a bottom-left stack, i.e. the same corner the shop bar
@@ -1335,9 +1334,8 @@ kbd {
   overflow-x: auto;
   scrollbar-width: none;
 }
-.attack-bar__row::-webkit-scrollbar {
-  display: none;
-}
+.attack-bar__row::-webkit-scrollbar { display: none; }
+.attack-bar__row { scrollbar-width: none; }
 .attack-bar__row .build-btn.is-active {
   border-color: var(--accent, #ffcf00);
   background: rgba(255, 207, 0, 0.18);
