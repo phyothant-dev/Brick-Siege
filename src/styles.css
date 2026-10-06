@@ -680,6 +680,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 4px;
+    flex-wrap: nowrap;
   }
   #shop-bar .build-btn--wave .build-btn__meta,
   #shop-bar .build-btn--wave .build-btn__meta em,
