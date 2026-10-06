@@ -1582,3 +1582,5 @@ body[data-side='attacker'] .build-btn {
   .build-btn--wave .build-btn__meta{display:flex !important;flex-direction:row !important;}
   .build-btn--wave .build-btn__meta b#wave-timer{display:inline !important;}
 }
+
+#wave-timer{display:inline-block !important;visibility:visible !important;}
