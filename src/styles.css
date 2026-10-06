@@ -1586,3 +1586,5 @@ body[data-side='attacker'] .build-btn {
 #wave-timer{display:inline-block !important;visibility:visible !important;}
 
 @media (max-width: 640px){ #wave-timer{display:inline !important;visibility:visible !important;} .build-btn--wave .build-btn__meta{display:flex !important;} }
+
+@media (max-width: 1000px){ .build-btn--wave{flex-direction:row !important;gap:4px !important;} .build-btn--wave .build-btn__meta{display:flex !important;flex-direction:row !important;gap:4px !important;align-items:center !important;} #wave-timer{display:inline !important;visibility:visible !important;} }
