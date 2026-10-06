@@ -1545,3 +1545,15 @@ body[data-side='attacker'] .build-btn {
 .brick-btn--primary.pulse {
   animation: pulseBtn 1.6s ease-in-out infinite;
 }
+
+.overlay--full::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px),
+                    radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size: 32px 32px, 64px 64px;
+  background-position: 0 0, 16px 16px;
+  opacity: 0.25;
+  pointer-events: none;
+}
