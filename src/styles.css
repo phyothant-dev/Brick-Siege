@@ -1596,3 +1596,5 @@ body[data-side='attacker'] .build-btn {
   #shop-bar .build-btn--wave .build-btn__meta{display:flex !important;flex-wrap:nowrap !important;}
   #shop-bar .build-btn--wave .build-btn__meta *{display:inline !important;}
 }
+
+@media (max-width: 1000px){ .build-btn--wave .build-btn__meta em, .build-btn--wave .build-btn__meta b{display:inline !important;font-size:0.5rem !important;} }
