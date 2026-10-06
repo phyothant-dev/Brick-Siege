@@ -1600,3 +1600,5 @@ body[data-side='attacker'] .build-btn {
 @media (max-width: 1000px){ .build-btn--wave .build-btn__meta em, .build-btn--wave .build-btn__meta b{display:inline !important;font-size:0.5rem !important;} }
 
 @media (max-width: 1000px){ #shop-bar{overflow-x:auto !important;} .build-btn--wave{min-width:fit-content !important;} }
+
+@media (max-width: 1000px){ .build-btn--wave{padding:4px 6px !important;} .build-btn--wave .build-btn__meta em, .build-btn--wave .build-btn__meta b{line-height:1 !important;margin:0 !important;} }
