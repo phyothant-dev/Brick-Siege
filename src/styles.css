@@ -1537,3 +1537,11 @@ body[data-side='attacker'] .build-btn {
 @media (max-height: 460px) {
   #inspector { top: 36px; max-height: min(50dvh, 66dvh); font-size: 0.44rem; }
 }
+
+@keyframes pulseBtn {
+  0%, 100% { transform: scale(1); box-shadow: 8px 8px 0 var(--lego-yellow); }
+  50% { transform: scale(1.02); box-shadow: 10px 10px 0 var(--lego-yellow); }
+}
+.brick-btn--primary.pulse {
+  animation: pulseBtn 1.6s ease-in-out infinite;
+}

@@ -357,6 +357,7 @@ export class Ui {
     this.ovPrimary.addEventListener('click', () => {
       if (this.overlayMode === 'intro') {
         this.overlayBox.classList.remove('intro-anim');
+        this.ovPrimary.classList.remove('pulse');
         this.showOverlay('menu');
         return;
       }
@@ -807,6 +808,7 @@ export class Ui {
       this.ovTitle.textContent = 'BRICK SIEGE';
       this.ovTag.textContent = 'TOWER DEFENSE';
       this.ovBody.innerHTML = `<p style="margin-bottom:12px; opacity:.9">Fortify the keep, stop the horde.</p>`;
+      this.ovPrimary.classList.add('pulse');
       this.ovPrimary.textContent = 'PLAY';
 
       return;
