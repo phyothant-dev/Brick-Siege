@@ -1503,10 +1503,10 @@ body[data-side='attacker'] .build-btn {
 }
 
 .overlay--full {
-  background: radial-gradient(circle at 50% 20%, rgba(255,255,255,0.08) 0%, rgba(33,33,33,0.95) 65%),
-              repeating-conic-gradient(from 0deg, rgba(255,255,255,0.03) 0deg 2deg, transparent 2deg 40deg),
-              linear-gradient(160deg, #d0011b 0%, #0055ad 40%, #237841 70%, #ffcf00 100%);
-  background-blend-mode: overlay, normal, normal;
+  background: radial-gradient(ellipse at 50% 15%, rgba(33,33,33,0.92) 0%, rgba(33,33,33,0.98) 70%, #212121 100%),
+              repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0 2px, transparent 2px 40px),
+              var(--lego-black);
+  backdrop-filter: blur(0px);
 }
 .overlay--full .overlay__box {
   background: var(--lego-black);
