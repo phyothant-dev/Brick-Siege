@@ -30,13 +30,13 @@ export const SIDE_INFO: Record<Side, SideInfo> = {
  * real money is the tower bounty, so the clock funds the opening push and every
  * brick after that has to be taken off the defence.
  */
-export const ATTACKER_INCOME = 5;
+export const ATTACKER_INCOME = 10;
 
 /**
  * Bricks the attacker starts with: enough for a first push, not enough to buy
  * the army outright. The opening has to come off the defence, not the clock.
  */
-export const ATTACKER_START_GOLD = 160;
+export const ATTACKER_START_GOLD = 200;
 
 /**
  * Seconds the attacker gets to break the fortress. The defender has a wave
