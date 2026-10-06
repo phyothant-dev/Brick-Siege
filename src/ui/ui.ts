@@ -817,7 +817,7 @@ export class Ui {
       this.ovTag.textContent = 'TOWER DEFENSE';
       this.ovBody.innerHTML = `<p style="margin-bottom:12px; opacity:.9">Fortify the keep, stop the horde.</p>`;
       this.ovPrimary.classList.add('pulse');
-      this.ovPrimary.style.padding = '10px 28px'; this.ovPrimary.style.fontSize = '1rem';
+      this.ovPrimary.style.padding = '12px 36px'; this.ovPrimary.style.fontSize = '1rem';
       this.ovPrimary.textContent = 'PLAY';
 
       return;
