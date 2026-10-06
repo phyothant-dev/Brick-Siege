@@ -1507,8 +1507,8 @@ body[data-side='attacker'] .build-btn {
 }
 
 .overlay--full {
-  background: transparent;
-  backdrop-filter: none;
+  background: radial-gradient(ellipse at 50% 20%, rgba(33,33,33,0.7) 0%, rgba(33,33,33,0.9) 80%);
+  backdrop-filter: blur(1px);
 }
 .overlay--full .overlay__box {
   background: transparent;
