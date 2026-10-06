@@ -806,10 +806,12 @@ export class Ui {
       $('map-picker')?.classList.toggle('hidden', true);
       this.overlayBox.classList.remove('overlay__box--compact');
       this.overlayBox.classList.add('intro-anim');
+      this.ovTitle.style.fontSize = "clamp(3rem, 10vw, 6rem)";
       this.ovTitle.textContent = 'BRICK SIEGE';
       this.ovTag.textContent = 'TOWER DEFENSE';
       this.ovBody.innerHTML = `<p style="margin-bottom:12px; opacity:.9">Fortify the keep, stop the horde.</p>`;
       this.ovPrimary.classList.add('pulse');
+      this.ovPrimary.style.padding = '14px 40px'; this.ovPrimary.style.fontSize = '1.2rem';
       this.ovPrimary.textContent = 'PLAY';
 
       return;
