@@ -288,9 +288,9 @@ body {
   position: absolute;
   right: max(4px, env(safe-area-inset-right));
   top: clamp(48px, 8vh, 72px);
-  width: min(200px, 40vw);
+  width: min(240px, 40vw);
   padding: 0 0 6px;
-  max-height: min(36vh, 46dvh);
+  max-height: min(40vh, 50dvh);
   overflow-y: auto;
   z-index: 20;
 }
@@ -530,9 +530,9 @@ body {
   #inspector {
     right: 4px;
     top: max(56px, 10vh);
-    width: min(180px, 42vw);
-    max-height: min(22vh, 26dvh);
-    max-height: min(22dvh, 26dvh);
+    width: min(220px, 54vw);
+    max-height: min(28vh, 36dvh);
+    max-height: min(28dvh, 36dvh);
     overflow-y: auto;
     bottom: auto;
   }
@@ -1468,7 +1468,7 @@ body[data-side='attacker'] .build-btn {
   #top-bar .btn-compact { padding: 0 2px; font-size: 0.4rem; }
   #shop-bar { padding: 1px; gap: 1px; max-height: 34px; overflow-x: auto; }
   .build-btn { min-height: 22px; flex: 0 0 70px; }
-  #inspector { top: max(24px, 6vh); right: 2px; width: min(140px, 36vw); max-height: min(20vh, 24dvh); max-height: min(20dvh, 24dvh); font-size: 0.42rem; bottom: auto; }
+  #inspector { top: max(24px, 6vh); right: 2px; width: min(200px, 48vw); max-height: min(26vh, 32dvh); max-height: min(26dvh, 32dvh); font-size: 0.46rem; bottom: auto; }
 }
 
 
