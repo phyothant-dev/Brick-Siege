@@ -467,34 +467,55 @@ function buildSniper(tier: number): TowerModel {
   }
 
   const brace = mesh(plate(4, 4), LEGO.flatGray);
-  at(brace, y - BRICK_H * 0.5);
+  at(brace, y);
   root.add(brace);
   pulse.push(brace);
 
+  const riser = mesh(brick(3, 3, false), spec.accent);
+  at(riser, y + PLATE_H);
+  root.add(riser);
+
   const head = new THREE.Group();
-  head.position.y = y;
-  const receiver = mesh(brick(3, 3, false), spec.accent);
-  at(receiver, BRICK_H * 0.4);
+  head.position.y = y + PLATE_H + BRICK_H;
+  root.add(head);
+
+  const receiver = mesh(brick(3, 3, false), LEGO.darkBluishGray);
+  at(receiver, 0);
   head.add(receiver);
-  // Long barrel.
-  const barrel = mesh(brick(2, 6, false), LEGO.black);
-  barrel.position.set(0, BRICK_H * 0.5, 2.4);
+
+  // Long barrel lying along +Z, sized in studs like every other turret.
+  const barrelY = BRICK_H * 0.55;
+  const barrel = mesh(cylinderZ(0.55, 7), LEGO.black);
+  at(barrel, barrelY, 0, 0.42);
   head.add(barrel);
-  const muzzleRing = mesh(ring(1.5, 0.4), LEGO.darkBluishGray);
+
+  const shroud = mesh(cylinderZ(0.9, 2), spec.accent);
+  at(shroud, barrelY, 0, 0.16);
+  head.add(shroud);
+
+  const muzzleRing = mesh(ring(0.9, 0.3), LEGO.darkBluishGray);
   muzzleRing.rotation.x = Math.PI / 2;
-  muzzleRing.position.set(0, BRICK_H * 0.5, 5.4);
+  muzzleRing.position.set(0, barrelY, 0.85);
   head.add(muzzleRing);
   pulse.push(muzzleRing);
-  const scope = mesh(roundBrick(1.6, BRICK_H * 0.5), LEGO.transLightBlue);
-  at(scope, BRICK_H * 1.1);
+
+  const scope = mesh(cylinderZ(0.7, 2.6), LEGO.transLightBlue);
+  at(scope, BRICK_H * 1.35, 0, 0.12);
   head.add(scope);
-  root.add(head);
+
+  const scopeEye = mesh(roundBrick(1.2, BRICK_H * 0.5), LEGO.darkBluishGray);
+  at(scopeEye, BRICK_H * 1.35, 0, -0.22);
+  head.add(scopeEye);
+
+  const muzzle = new THREE.Object3D();
+  muzzle.position.set(0, barrelY, 0.95);
+  head.add(muzzle);
 
   return {
     root,
     head,
-    muzzle: muzzleRing,
-    headY: y,
+    muzzle,
+    headY: head.position.y,
     pulse,
     auraRadius: 0,
   };
@@ -523,19 +544,28 @@ function buildCluster(tier: number): TowerModel {
 
   const head = new THREE.Group();
   head.position.y = y;
-  // Three short tubes in a fan: the cluster silhouette.
+  const breech = mesh(brick(4, 3, false), LEGO.darkBluishGray);
+  at(breech, BRICK_H * 0.3);
+  head.add(breech);
+
+  // Three short tubes in a fan: the cluster silhouette. Offsets are world
+  // units (a tile is 1.0), so the barrels sit side by side, not tiles apart.
   const tubes: THREE.Object3D[] = [];
   for (let i = 0; i < 3; i++) {
-    const tube = mesh(roundBrick(1.7, BRICK_H * 1.2), i === 1 ? LEGO.white : spec.accent);
-    tube.position.set((i - 1) * 1.5, BRICK_H * 0.6, 1.2);
-    tube.rotation.x = (i - 1) * 0.16;
-    head.add(tube);
-    tubes.push(tube);
+    const pivot = new THREE.Group();
+    pivot.position.set((i - 1) * 0.22, BRICK_H * 0.7, 0.08);
+    pivot.rotation.set(-0.45, (i - 1) * 0.16, 0);
+    const tube = mesh(cylinderZ(0.8, 3.2), i === 1 ? LEGO.white : spec.accent);
+    at(tube, 0, 0, 0.2);
+    pivot.add(tube);
+    const tip = mesh(ring(0.95, 0.28), LEGO.darkBluishGray);
+    tip.rotation.x = Math.PI / 2;
+    at(tip, 0, 0, 0.4);
+    pivot.add(tip);
+    head.add(pivot);
+    tubes.push(pivot);
+    pulse.push(tip);
   }
-  const breech = mesh(brick(4, 3, false), LEGO.darkBluishGray);
-  at(breech, -BRICK_H * 0.1);
-  head.add(breech);
-  pulse.push(...tubes);
   root.add(head);
 
   return {
@@ -656,12 +686,13 @@ function buildAcid(tier: number): TowerModel {
   head.rotation.x = -0.6;
   pivot.add(head);
 
-  const tube = mesh(cylinderZ(1.3, 3.2), DARK);
-  at(tube, 0, 0, 0.5);
+  const tube = mesh(cylinderZ(1.3, 4), DARK);
+  at(tube, 0, 0, 0.35);
   head.add(tube);
 
   const mouth = mesh(ring(1.6, 0.4), LEGO.brightGreen);
-  at(mouth, 0, 0, 2.1);
+  mouth.rotation.x = Math.PI / 2;
+  at(mouth, 0, 0, 0.62);
   head.add(mouth);
   pulse.push(mouth);
 
@@ -670,12 +701,12 @@ function buildAcid(tier: number): TowerModel {
     transparent: true,
     emissive: LEGO.brightGreen,
   });
-  at(glob, 0, 0, 2.35);
+  at(glob, 0, 0, 0.72);
   head.add(glob);
   pulse.push(glob);
 
   const muzzle = new THREE.Object3D();
-  muzzle.position.set(0, 0, 2.5);
+  muzzle.position.set(0, 0, 0.82);
   head.add(muzzle);
 
   return { root, head: pivot, muzzle, headY: y + BRICK_H * 2.6, pulse };
@@ -705,37 +736,37 @@ function buildRail(tier: number): TowerModel {
   at(breech, BRICK_H * 0.3);
   head.add(breech);
 
-  const spine = mesh(brick(2, 8, false), LEGO.black);
-  spine.position.set(0, BRICK_H * 0.45, 2.4);
+  const spine = mesh(brick(2, 7, false), LEGO.black);
+  at(spine, BRICK_H * 0.5, 0, 0.45);
   head.add(spine);
 
   for (const side of [-1, 1]) {
-    const railBar = mesh(brick(1, 9, false), spec.accent);
-    railBar.position.set(side * 0.16, BRICK_H * 0.75, 2.9);
+    const railBar = mesh(brick(1, 8, false), spec.accent);
+    railBar.position.set(side * 0.16, BRICK_H * 0.62, 0.5);
     head.add(railBar);
   }
 
   const glow = mesh(sphere(1.4), LEGO.brightYellow, { emissive: LEGO.yellow });
-  at(glow, BRICK_H * 0.5, 0, -0.1);
+  at(glow, BRICK_H * 0.5, 0, -0.05);
   head.add(glow);
   pulse.push(glow);
 
-  const muzzleRing = mesh(ring(1.5, 0.4), LEGO.darkBluishGray);
+  const muzzleRing = mesh(ring(1.4, 0.4), LEGO.darkBluishGray);
   muzzleRing.rotation.x = Math.PI / 2;
-  muzzleRing.position.set(0, BRICK_H * 0.6, 7.4);
+  muzzleRing.position.set(0, BRICK_H * 0.6, 0.95);
   head.add(muzzleRing);
   pulse.push(muzzleRing);
 
   if (tier >= 3) {
     const crest = mesh(brick(6, 2, false), LEGO.yellow);
-    at(crest, BRICK_H * 1.2, 0, -0.05);
+    at(crest, BRICK_H * 1.1, 0, -0.05);
     head.add(crest);
   }
 
   root.add(head);
 
   const muzzle = new THREE.Object3D();
-  muzzle.position.set(0, BRICK_H * 0.6, 7.6);
+  muzzle.position.set(0, BRICK_H * 0.6, 1.02);
   head.add(muzzle);
 
   return { root, head, muzzle, headY: y, pulse };
@@ -764,27 +795,28 @@ function buildBuckshot(tier: number): TowerModel {
   head.add(housing);
 
   const barrels = tier >= 3 ? 4 : 3;
+  const barrelY = BRICK_H * 0.7;
   for (let i = 0; i < barrels; i++) {
-    const off = (i - (barrels - 1) / 2) * 0.9;
-    const tube = mesh(roundBrick(1.5, BRICK_H * 1.4), i % 2 ? LEGO.flatGray : LEGO.black);
-    tube.position.set(off, BRICK_H * 0.7, 1.4);
+    const off = (i - (barrels - 1) / 2) * 0.2;
+    const tube = mesh(cylinderZ(0.7, 3.5), i % 2 ? LEGO.flatGray : LEGO.black);
+    at(tube, barrelY, off, 0.45);
     head.add(tube);
   }
 
   const mouth = mesh(ring(1.9, 0.4), LEGO.black);
   mouth.rotation.x = Math.PI / 2;
-  mouth.position.set(0, BRICK_H * 0.7, 2.4);
+  mouth.position.set(0, barrelY, 0.68);
   head.add(mouth);
   pulse.push(mouth);
 
   const stock = mesh(brick(3, 3, false), LEGO.redBrown);
-  at(stock, BRICK_H * 0.4, 0, -1.7);
+  at(stock, BRICK_H * 0.4, 0, -0.35);
   head.add(stock);
 
   root.add(head);
 
   const muzzle = new THREE.Object3D();
-  muzzle.position.set(0, BRICK_H * 0.7, 2.8);
+  muzzle.position.set(0, barrelY, 0.78);
   head.add(muzzle);
 
   return { root, head, muzzle, headY: y, pulse };
