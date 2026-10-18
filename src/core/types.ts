@@ -11,7 +11,11 @@ export type TowerId =
   | 'sprayer'
   | 'sniper'
   | 'cluster'
-  | 'support';
+  | 'support'
+  | 'acid'
+  | 'rail'
+  | 'buckshot'
+  | 'glacier';
 
 export type EnemyId =
   | 'slime'
@@ -22,7 +26,10 @@ export type EnemyId =
   | 'overlord'
   | 'archer'
   | 'gunner'
-  | 'launcher';
+  | 'brute'
+  | 'wisp'
+  | 'golem'
+  | 'catapult';
 
 export type Tier = 1 | 2 | 3;
 
@@ -118,7 +125,7 @@ export interface EnemySpec {
   /** Towers caught in the blast when `attackSplash` > 0. */
   attackSplash?: number;
   /** Projectile look used when firing at towers. */
-  attackStyle?: 'arrow' | 'bullet' | 'rocket';
+  attackStyle?: 'arrow' | 'bullet' | 'boulder';
 }
 
 export interface Enemy {

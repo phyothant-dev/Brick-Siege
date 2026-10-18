@@ -44,6 +44,7 @@ import {
   type Side,
 } from './core/sides';
 import { Board } from './scene/board';
+import { Ambient } from './scene/ambient';
 import { THEMES, isThemeId } from './scene/themes';
 import type { ThemeId } from './scene/themes';
 
@@ -64,6 +65,8 @@ const lane = { x: 0, z: 0, dx: 1, dz: 0 };
 export class Game {
   readonly stage: Stage;
   readonly board = new Board();
+  /** Anime.js-driven idle motion for the scenery; owns no state of its own. */
+  private readonly ambient = new Ambient();
 
   /** Background theme, persisted between sessions. */
   private themeId: ThemeId = 'forest';
@@ -81,6 +84,7 @@ export class Game {
     if (!theme) return;
     this.themeId = id;
     this.board.setTheme(theme);
+    this.ambient.refresh(this.board);
     this.stage?.setSky(theme.sky);
     try {
       localStorage.setItem(THEME_KEY, id);
@@ -845,7 +849,7 @@ export class Game {
     const now = performance.now();
     if (now - this.lastSiegeSfx > 140) {
       this.lastSiegeSfx = now;
-      sfx(spec.attackStyle === 'rocket' ? 'explode' : 'shoot', 1.15);
+      sfx('shoot', 1.15);
     }
 
     let dmg = spec.attackDamage ?? 0;

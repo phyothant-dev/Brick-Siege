@@ -19,7 +19,23 @@ export type PropKind = 'broadleaf' | 'cactus' | 'pine' | 'burnt';
  * everyday scatter prop and adds these, so the desert can have both cacti and a
  * pyramid instead of having to choose.
  */
-export type LandmarkKind = 'pyramid' | 'sphinx' | 'iceberg' | 'volcano' | 'boulder' | 'stump';
+export type LandmarkKind =
+  | 'pyramid'
+  | 'sphinx'
+  | 'obelisk'
+  | 'boulder'
+  | 'stump'
+  | 'bigTree'
+  | 'campfire'
+  | 'oasis'
+  | 'iceberg'
+  | 'iceArch'
+  | 'igloo'
+  | 'polarBear'
+  | 'volcano'
+  | 'obsidian'
+  | 'obsidianSpire'
+  | 'lavaPit';
 
 /** Ground treatment scattered on the terrain plane around the baseplate. */
 export type GroundKind = 'grass' | 'sand' | 'snow' | 'lava';
@@ -60,7 +76,7 @@ export const THEMES: Record<ThemeId, BoardTheme> = {
     sky: 0x8fc0f2,
     ground: 0xe9e7e0,
     prop: 'broadleaf',
-    landmarks: ['stump', 'boulder'],
+    landmarks: ['bigTree', 'boulder', 'stump', 'campfire'],
     terrain: 'grass',
     foliage: LEGO.brightGreen,
     foliageAlt: LEGO.darkGreen,
@@ -76,7 +92,7 @@ export const THEMES: Record<ThemeId, BoardTheme> = {
     sky: 0xf0c987,
     ground: 0xe4c98f,
     prop: 'cactus',
-    landmarks: ['pyramid', 'sphinx'],
+    landmarks: ['pyramid', 'pyramid', 'pyramid', 'sphinx', 'oasis'],
     terrain: 'sand',
     foliage: LEGO.brightGreen,
     foliageAlt: LEGO.green,
@@ -92,7 +108,7 @@ export const THEMES: Record<ThemeId, BoardTheme> = {
     sky: 0xbcd8ea,
     ground: 0xeaf3f8,
     prop: 'pine',
-    landmarks: ['iceberg', 'iceberg'],
+    landmarks: ['iceberg', 'iceArch', 'igloo', 'polarBear'],
     terrain: 'snow',
     foliage: LEGO.green,
     foliageAlt: LEGO.darkGreen,
@@ -108,7 +124,7 @@ export const THEMES: Record<ThemeId, BoardTheme> = {
     sky: 0x4a2a24,
     ground: 0x4d423c,
     prop: 'burnt',
-    landmarks: ['volcano'],
+    landmarks: ['volcano', 'obsidianSpire', 'lavaPit', 'obsidian'],
     terrain: 'lava',
     glow: 0xff5a1f,
     foliage: LEGO.black,

@@ -239,7 +239,7 @@ export const STUD_H = PITCH * 0.22;
 /** Visible seam between adjacent bricks. */
 export const BRICK_GAP = PITCH * 0.05;
 
-export const FORTRESS_MAX_HP = 20;
+export const FORTRESS_MAX_HP = 30;
 
 export const START_GOLD = 320;
 export const START_BRICKS = 260;

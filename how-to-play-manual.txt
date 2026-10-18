@@ -44,21 +44,24 @@ CAMERA
 BUILDING (defender)
   Click or tap a tower in the shop, then click an empty stud to place it.
   Tapping a placed tower selects it, which highlights anything you can merge.
+  Drag the panel's title bar to move it out of the way; double-click the bar to
+  send it back to its default corner.
   Sell with the SELL button on the selection panel, or with Delete / Backspace.
   Selling refunds 60% of everything poured into the tower.
 
-  Keys 1-8 select a tower:
+  Keys 1-9, 0, - and = select a tower:
     1 Brick Shooter    2 Mortar        3 Freezer      4 Tesla Coil
     5 Sprayer          6 Long Shot     7 Cluster      8 Beacon
+    9 Acid Rain        0 Rail Gun      - Buckshot     = Deep Freeze
 
 DEPLOYING (attacker)
   Click or tap a creature in the palette, then click one of the marked tiles.
   Press the same number again, or tap the palette again, to cancel.
 
-  Keys 1-9 select a creature:
-    1 Stud Slime       2 Bone Builder  3 Crumble Zombie
-    4 Bow Brick        5 Ghost Brick   6 Gun Brick
-    7 Brick Demon      8 Rocket Brick  9 The Overlord
+  Keys 1-9, 0, - and = select a creature:
+    1 Stud Slime       2 Bone Builder  3 Frost Wisp   4 Crumble Zombie
+    5 Bow Brick        6 Ghost Brick   7 Gun Brick    8 Iron Brute
+    9 Brick Catapult   0 Brick Demon   - Gravel Golem  = The Overlord
 
   Q cycles through the creatures you can afford.
 
@@ -120,7 +123,7 @@ COMBINING RANGE
 
 
 --------------------------------------------------------------------------------
-4. DEFENDER - THE NINE TOWERS
+4. DEFENDER - THE TWELVE TOWERS
 --------------------------------------------------------------------------------
 
  BRICK SHOOTER   60 bricks
@@ -179,6 +182,36 @@ COMBINING RANGE
    MK II   +28% damage, +18% speed to towers within 3.0
    MK III  +40% damage, +25% speed to towers within 3.4
 
+ ACID RAIN       120 bricks
+   Lobs a glob that bursts into a puddle of acid. The hit is small, but every
+   creature caught in the splash keeps burning for seconds afterwards, so it is
+   a crowd-killer that rewards hitting tight packs.
+   MK I     6 dmg +  7 poison/sec for 4.0s   splash 1.2   range 3.3
+   MK II    9 dmg + 11 poison/sec for 4.5s   splash 1.4   range 3.6
+   MK III  13 dmg + 16 poison/sec for 5.0s   splash 1.6   range 4.0
+
+ RAIL GUN        150 bricks
+   The longest reach of any gun. One charged slug punches straight through a
+   line of creatures, each extra hit at 90% of the damage of the last. Slow to
+   reload, so aim it down a straight stretch.
+   MK I    40 dmg   every 2.4s   range 6.5   pierces 3
+   MK II   64 dmg   every 2.2s   range 7.0   pierces 4
+   MK III  96 dmg   every 2.0s   range 7.6   pierces 5
+
+ BUCKSHOT         90 bricks
+   A close-range salvo gun. It fires a tight burst of rounds in one go, so it
+   shreds whatever is right in front of it and is worthless far away.
+   MK I     8 dmg   every 1.5s   range 2.9   burst of 3
+   MK II   12 dmg   every 1.4s   range 3.2   burst of 3
+   MK III  17 dmg   every 1.3s   range 3.5   burst of 4
+
+ DEEP FREEZE     105 bricks
+   One heavy frost bolt with almost no damage but the strongest slow in the
+   game. Anchor a corridor with it and let your damage towers do the rest.
+   MK I     5 dmg   every 2.2s   -55% speed for 3.0s
+   MK II    8 dmg   every 2.0s   -62% speed for 3.6s
+   MK III  12 dmg   every 1.8s   -70% speed for 4.2s
+
 
 --------------------------------------------------------------------------------
 5. ATTACKER - HOW TO PLAY
@@ -204,7 +237,7 @@ WHERE YOU CAN DEPLOY - LOOK FOR THE ARROWS
   right next to the fortress would skip the entire puzzle.
 
 MONEY
-  You start with 160 bricks and earn 5 bricks every second, so the clock is
+  You start with 160 bricks and earn 3 bricks every second, so the clock is
   also your income. Every second you spend thinking is a creature you cannot
   afford.
 
@@ -221,33 +254,43 @@ SIEGE
 
 
 --------------------------------------------------------------------------------
-6. ATTACKER - THE NINE CREATURES
+6. ATTACKER - THE TWELVE CREATURES
 --------------------------------------------------------------------------------
 
-  #  CREATURE          COST    HP     SPEED   LEAK
-  -  ----------------  ------  -----  ------  ----
-  1  Stud Slime         20      42    1.05     1
-  2  Bone Builder       35      34    1.55     1
-  3  Crumble Zombie     45      98    0.72     2
-  4  Bow Brick          70      46    1.85     1
-  5  Ghost Brick        55      58    1.38     1
-  6  Gun Brick          85      78    1.50     1
-  7  Brick Demon        80     215    0.62     3
-  8  Rocket Brick      110     165    1.05     2
-  9  The Overlord      150    1500    0.48    10
+  KEY  CREATURE          COST    HP     SPEED   LEAK
+  ---  ----------------  ------  -----  ------  ----
+  1    Stud Slime         20      42    1.05     1
+  2    Bone Builder       35      34    1.55     1
+  3    Frost Wisp         30      30    2.00     1
+  4    Crumble Zombie     45      98    0.72     2
+  5    Bow Brick          70      46    1.85     1
+  6    Ghost Brick        55      58    1.38     1
+  7    Gun Brick          85      78    1.50     1
+  8    Iron Brute         95     240    0.68     3
+  9    Brick Catapult    100     130    0.85     2
+  0    Brick Demon        80     215    0.62     3
+  -    Gravel Golem      115     320    0.50     4
+  =    The Overlord      150    1500    0.48    10
 
   Speed is in tiles per second. Leak is fortress damage if it gets home.
 
   Stud Slime     Cheap and endless. Filler, but filler is what pays for the
                  next wave of units.
   Bone Builder   Very fast and very cheap. Good for swamping a gap.
+  Frost Wisp     The quickest and flimsiest unit. Ice barely scratches it, but
+                 poison and lightning tear it apart.
   Crumble Zombie Slow, sturdy, and hits the fortress for 2.
-  Bow Brick      The fastest thing in the game, and it shoots your towers from
-                 3.4 tiles out. Kill it early or it thins your defence for you.
-  Ghost Brick    Quick and slippery.
+  Bow Brick      The fastest shooter, and it pokes your towers from 3.4 tiles
+                 out. Kill it early or it thins your defence for you.
+  Ghost Brick    Quick and slippery. Immune to plain physical damage.
   Gun Brick      Ranged. Can shoot the towers it passes.
+  Iron Brute     A wall of armour. Bricks bounce off it; a lightning tower
+                 punches straight through it.
+  Brick Catapult Lobs a boulder from 5.2 tiles away that shatters every tower
+                 nearby. The best tool for cracking a clustered defence.
   Brick Demon    A real wall of HP, and costs 3 fortress damage.
-  Rocket Brick   Heavy ranged hitter, and costs 2 fortress damage.
+  Gravel Golem   Enormous HP, dead slow, and completely immune to lightning.
+                 Blunt physical damage is the only thing that crumbles it.
   The Overlord   Enormous HP and 10 fortress damage in one hit. Save it for
                  when the gate is already weak, or use it as a battering ram
                  against a merged tower line.
@@ -284,13 +327,15 @@ SIEGE
   mid-run from the pause menu.
 
   FOREST     Grass and woodland. Broadleaf trees, pines, fallen logs,
-             undergrowth, a cut stump and a mossy boulder.
-  DESERT     Warm sand. Cacti, palms, obelisks, a stepped pyramid and a
-             sphinx.
-  ARCTIC     Snow and ice. Frosted pines, ice spires, icebergs, three polar
-             bears and an igloo.
-  VOLCANO    Ash and lava. Charred trunks, obsidian shards, and a volcano
-             with a glowing crater that lights up the scene.
+             undergrowth, a giant hero tree, a campfire, a cut stump and a
+             mossy boulder.
+  DESERT     Warm sand. Cacti, palms, obelisks, three stepped pyramids, a
+             sphinx and a palm-ringed oasis.
+  ARCTIC     Snow and ice. Frosted pines, ice spires, an iceberg, an ice
+             arch, igloos and polar bears.
+  VOLCANO    Ash and lava. Charred trunks, obsidian shards, an obsidian spire,
+             a glowing lava pit, and a volcano with a glowing crater that
+             lights up the scene.
 
   A theme only changes the scenery. The baseplate, the lanes and the fortress
   are identical on every theme, so no theme makes a map easier or harder.
@@ -318,16 +363,22 @@ DEFENDING
     with your finger before you commit your money.
   - Selling at 60% means a badly placed early tower is cheap to fix. Do not
     be precious about your first placement.
+  - Deep Freeze holds a fast lane on its own; Acid Rain punishes the packs that
+    Deep Freeze bunches up. The two together are a strong cheap core.
+  - Lightning does nothing to a Gravel Golem and poison does nothing to a Bone
+    Builder, so never rely on a single element once the late waves arrive.
 
 ATTACKING
   - Spread across gates. The defender has to cover all of them, and on
     CROSSFIRE and FOUR PATHS that is a lot of ground.
   - The 45 brick bounty is real money. Two Gun Brick kills early can pay for
     the Overlord.
+  - Brick Catapults outrange most towers, so a pair of them can flatten a
+    defence before your melee units even arrive. Screen them with cheap Slimes.
   - Overlords cost 10 fortress damage each. Three of them end the run, but
     they are slow, so a Freezer-heavy defence will hold them a long time.
-  - Watch the clock. At 5 bricks a second, a 300 second run is worth roughly
-    1500 bricks of spending plus whatever you loot. Do not sit on it.
+  - Watch the clock. At 3 bricks a second, a 300 second run is worth roughly
+    900 bricks of spending plus whatever you loot. Do not sit on it.
 
 
 --------------------------------------------------------------------------------

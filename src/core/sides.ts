@@ -30,13 +30,13 @@ export const SIDE_INFO: Record<Side, SideInfo> = {
  * real money is the tower bounty, so the clock funds the opening push and every
  * brick after that has to be taken off the defence.
  */
-export const ATTACKER_INCOME = 10;
+export const ATTACKER_INCOME = 3;
 
 /**
  * Bricks the attacker starts with: enough for a first push, not enough to buy
  * the army outright. The opening has to come off the defence, not the clock.
  */
-export const ATTACKER_START_GOLD = 200;
+export const ATTACKER_START_GOLD = 160;
 
 /**
  * Seconds the attacker gets to break the fortress. The defender has a wave
@@ -80,25 +80,69 @@ export const ATTACKER_COST: Record<EnemyId, number> = {
   overlord: 150,
   archer: 70,
   gunner: 85,
-  launcher: 110,
+  brute: 95,
+  wisp: 30,
+  golem: 115,
+  catapult: 100,
 };
 
 /** Units the attacker may deploy, cheapest first, for the palette UI. */
 export const ATTACKER_ORDER: ReadonlyArray<EnemyId> = [
   'slime',
   'skeleton',
+  'wisp',
   'zombie',
   'archer',
   'ghost',
   'gunner',
+  'brute',
+  'catapult',
   'demon',
-  'launcher',
+  'golem',
   'overlord',
 ];
 
-/** Digit1-Digit9 -> creature, matching the order shown on the palette. */
+/**
+ * Key codes for the attacker palette, in `ATTACKER_ORDER` order. Runs past the
+ * number row (9, 0, minus, equals) so the roster can grow beyond eight units
+ * without two deployments sharing a hotkey.
+ */
+export const ATTACKER_KEY_LABELS: ReadonlyArray<string> = [
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  '0',
+  '-',
+  '=',
+];
+
+const ATTACKER_KEY_CODES: ReadonlyArray<string> = [
+  'Digit1',
+  'Digit2',
+  'Digit3',
+  'Digit4',
+  'Digit5',
+  'Digit6',
+  'Digit7',
+  'Digit8',
+  'Digit9',
+  'Digit0',
+  'Minus',
+  'Equal',
+];
+
+/** Key code -> creature, matching the order shown on the palette. */
 export const ATTACKER_KEYS: Record<string, EnemyId> = Object.fromEntries(
-  ATTACKER_ORDER.map((id, i) => [`Digit${i + 1}`, id]),
+  ATTACKER_ORDER.slice(0, ATTACKER_KEY_CODES.length).map((id, i) => [
+    ATTACKER_KEY_CODES[i],
+    id,
+  ]),
 );
 
 /** Menu copy per side, so the start button never promises the wrong objective. */

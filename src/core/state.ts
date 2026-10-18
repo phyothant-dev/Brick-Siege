@@ -229,8 +229,9 @@ export class GameState {
   }
 
   applySlow(enemy: Enemy, factor: number, duration: number): void {
-    // Strongest recent slow wins; shorter remaining times refresh.
-    if (factor <= enemy.slowFactor && enemy.slowTimer > 0) return;
+    // Strongest slow wins (lower factor = stronger). While a strong slow is
+    // ticking, a weaker one is ignored; the winner's timer is refreshed.
+    if (factor > enemy.slowFactor && enemy.slowTimer > 0) return;
     enemy.slowFactor = factor;
     enemy.slowTimer = Math.max(enemy.slowTimer, duration);
   }

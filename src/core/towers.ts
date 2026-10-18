@@ -140,6 +140,62 @@ export const TOWERS: Record<TowerId, TowerSpec> = {
       tier({ range: 0, cooldown: 1, damage: 0, buffDamage: 0.4, buffHaste: 0.25, buffRadius: 3.4 }),
     ],
   },
+  acid: {
+    id: 'acid',
+    name: 'ACID RAIN',
+    element: 'poison',
+    cost: 120,
+    hotkey: '9',
+    accent: LEGO.brightGreen,
+    blurb: 'Lobs a bubbling glob that splashes acid on a whole pack. Weak hit, brutal lingering burn.',
+    tiers: [
+      tier({ range: 3.3, cooldown: 2.0, damage: 6, splash: 1.2, poisonDps: 7, poisonTime: 4.0 }),
+      tier({ range: 3.6, cooldown: 1.8, damage: 9, splash: 1.4, poisonDps: 11, poisonTime: 4.5 }),
+      tier({ range: 4.0, cooldown: 1.6, damage: 13, splash: 1.6, poisonDps: 16, poisonTime: 5.0 }),
+    ],
+  },
+  rail: {
+    id: 'rail',
+    name: 'RAIL GUN',
+    element: 'lightning',
+    cost: 150,
+    hotkey: '0',
+    accent: LEGO.brightYellow,
+    blurb: 'Draws a charged slug that punches clean through a line of enemies. Long reach, slow reload.',
+    tiers: [
+      tier({ range: 6.5, cooldown: 2.4, damage: 40, chain: 2, chainFalloff: 0.9 }),
+      tier({ range: 7.0, cooldown: 2.2, damage: 64, chain: 3, chainFalloff: 0.9 }),
+      tier({ range: 7.6, cooldown: 2.0, damage: 96, chain: 4, chainFalloff: 0.9 }),
+    ],
+  },
+  buckshot: {
+    id: 'buckshot',
+    name: 'BUCKSHOT',
+    element: 'physical',
+    cost: 90,
+    hotkey: '-',
+    accent: LEGO.orange,
+    blurb: 'Close-range salvo gun. Fires a tight burst of rounds — devastating up close, useless far away.',
+    tiers: [
+      tier({ range: 2.9, cooldown: 1.5, damage: 8, burst: 3 }),
+      tier({ range: 3.2, cooldown: 1.4, damage: 12, burst: 3 }),
+      tier({ range: 3.5, cooldown: 1.3, damage: 17, burst: 4 }),
+    ],
+  },
+  glacier: {
+    id: 'glacier',
+    name: 'DEEP FREEZE',
+    element: 'ice',
+    cost: 105,
+    hotkey: '=',
+    accent: LEGO.transIce,
+    blurb: 'One heavy frost bolt that nearly stops a target. Poor damage, the strongest slow in the game.',
+    tiers: [
+      tier({ range: 3.0, cooldown: 2.2, damage: 5, slow: 0.55, slowTime: 3.0 }),
+      tier({ range: 3.4, cooldown: 2.0, damage: 8, slow: 0.62, slowTime: 3.6 }),
+      tier({ range: 3.8, cooldown: 1.8, damage: 12, slow: 0.7, slowTime: 4.2 }),
+    ],
+  },
 };
 
 export const TOWER_ORDER: TowerId[] = [
@@ -151,6 +207,10 @@ export const TOWER_ORDER: TowerId[] = [
   'sniper',
   'cluster',
   'support',
+  'acid',
+  'rail',
+  'buckshot',
+  'glacier',
 ];
 
 export const MAX_TIER: Tier = 3;
@@ -169,6 +229,10 @@ export function towerMaxHp(type: TowerId, tierIndex: Tier): number {
     support: 120,
     coil: 80,
     sprayer: 95,
+    acid: 90,
+    rail: 75,
+    buckshot: 105,
+    glacier: 100,
   };
   return Math.round(base[type] * (1 + 0.6 * (tierIndex - 1)));
 }

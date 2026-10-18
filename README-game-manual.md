@@ -1,9 +1,9 @@
 # Brick Siege — Player Manual
 
 A 3D brick-built tower defense. Twenty-five waves of LEGO-ish invaders march a lane
-lane toward the keep in the centre of the board. You build, merge, re-sell and re-tool
-five kinds of turret to stop them. Lose the keep and the horde wins; survive wave 25 and
-the siege holds.
+toward the keep in the centre of the board. You build, merge, re-sell and re-tool
+twelve kinds of turret to stop them. Lose the keep and the horde wins; survive wave 25
+and the siege holds.
 
 Everything you see is generated in code — the bricks, the studs, the minions, the
 projectiles and all the sound. There are no image, model or audio files.
@@ -54,15 +54,16 @@ The fortress does not fight back on its own — only its towers do.
 unit next to the fortress would skip the whole puzzle, so units always have to walk in
 and fight through the towers.
 
-**Siege units are your tools for cracking the defence.** ARCHER, GUNNER and LAUNCHER
-stop to shoot at towers while they march, and they hit towers three times as hard on the
-attacker side. Everything else is a body for the towers to shoot at.
+**Siege units are your tools for cracking the defence.** ARCHER, GUNNER and the BRICK
+CATAPULT stop to shoot at towers while they march (the catapult lobs a blast that
+shatters every tower nearby), and they hit towers three times as hard on the attacker
+side. Everything else is a body for the towers to shoot at.
 
 Destroying a tower pays a bounty, more for upgraded ones, so thinning the defence out
 funds the next wave of units.
 
-Costs: SLIME 20 · SKELETON 35 · ZOMBIE 45 · ARCHER 70 · GHOST 55 · GUNNER 85 ·
-DEMON 80 · LAUNCHER 110 · OVERLORD 150.
+Costs: SLIME 20 · SKELETON 35 · WISP 30 · ZOMBIE 45 · ARCHER 70 · GHOST 55 · GUNNER 85 ·
+BRUTE 95 · CATAPULT 100 · DEMON 80 · GOLEM 115 · OVERLORD 150.
 
 Because the defender layouts are fixed, every map is a puzzle to learn: find the lane
 that is cheapest to break, open it up, then flood it.
@@ -82,11 +83,12 @@ spreading thin across all four.
 | Action | How |
 | --- | --- |
 | Select a tower | Click it |
+| **Move the tower panel** | **Drag its title bar** (double-click the bar to reset its spot) |
 | **Look around the board** | **Right-drag** (or two-finger drag on touch) |
 | Pan the camera | Left-drag |
 | Zoom | Scroll wheel / pinch |
 | Start building | Click a shop brick, then click an empty stud |
-| Choose tower type | Click a shop brick, or press `1`–`8` |
+| Choose tower type | Click a shop brick, or press `1`–`9`, `0`, `-`, `=` |
 | Cycle tower types | `Q` |
 | Combine | Select a tower, press `C`, click a partner |
 | Sell | Select a tower, press `Delete` / `Backspace`, or the SELL button |
@@ -102,9 +104,9 @@ spreading thin across all four.
 
 | Action | Key |
 | --- | --- |
-| Shooter / Mortar / Freezer / Coil / Sprayer | `1` `2` `3` `4` `5` |
-| Sniper / Cluster / Support (defender) | `6` `7` `8` |
-| Creature palette (attacker) | `1` – `9` |
+| Shooter / Mortar / Freezer / Coil / Sprayer / Sniper / Cluster / Beacon | `1` `2` `3` `4` `5` `6` `7` `8` |
+| Acid Rain / Rail Gun / Buckshot / Deep Freeze (defender) | `9` `0` `-` `=` |
+| Creature palette (attacker) | `1` – `9`, `0`, `-`, `=` |
 | Next creature in palette | `Q` |
 | Combine selected | `C` |
 | Sell selected | `Delete` / `Backspace` |
@@ -158,21 +160,26 @@ saves and applies instantly, including mid-run.
 
 | Theme | Look | Landmarks | Ground |
 | --- | --- | --- | --- |
-| **FOREST** | Blue sky, pale grass | **232 props**: 130 broadleaf trees, 52 pines, 36 undergrowth clumps, 12 fallen logs, a cut stump, a mossy boulder | 80 grass tufts |
-| **DESERT** | Warm sand sky | **124 props**: 96 cacti, 18 palms, 8 obelisks, a stepped **pyramid**, a **sphinx** | 74 sand ripples |
-| **ARCTIC** | Cold white sky | **140 props**: 108 frosted pines, 26 ice spires, two **icebergs**, **three polar bears**, an **igloo** | 74 snow drifts |
-| **VOLCANO** | Dark ash sky | **131 props**: 100 charred trunks, 30 obsidian shards, a **volcano** with a glowing crater | 64 glowing lava cracks + 4 lava pools |
+| **FOREST** | Blue sky, pale grass | **234 props**: 130 broadleaf trees, 52 pines, 36 undergrowth clumps, 12 fallen logs, a giant **hero tree**, a **campfire**, a cut stump, a mossy boulder | 80 grass tufts |
+| **DESERT** | Warm sand sky | **127 props**: 96 cacti, 18 palms, 8 obelisks, **three stepped pyramids**, a **sphinx** and a palm-ringed **oasis** | 74 sand ripples |
+| **ARCTIC** | Cold white sky | **142 props**: 108 frosted pines, 26 ice spires, **four polar bears**, two **igloos**, an **iceberg** and an **ice arch** | 74 snow drifts |
+| **VOLCANO** | Dark ash sky | **134 props**: 100 charred trunks, 31 obsidian shards, a **volcano** with a glowing crater, a black **obsidian spire** and a glowing **lava pit** | 64 glowing lava cracks + 4 lava pools |
 
 Every theme scatters its scenery in loose clumps rather than on even rings, so the
 landscape grows in groves with natural clearings between them instead of reading as
 concentric circles around the plate. It still reaches every direction — roughly 8 of 8
 compass sectors, out to about 33 tiles past the plate — so the plate sits *inside* the
-landscape. Forest is the densest by design (232 props, 182 of them trees) — it is meant
-to feel wooded in. The volcano's crater, lava spill and lava pool are emissive, so they
-actually glow.
+landscape. Forest is the densest by design (234 props, 182 of them trees) — it is meant
+to feel wooded in. The volcano's crater, lava spill, lava pit and lava pool are emissive,
+so they actually glow.
 
 Props are stamped in bulk and merged per material, so the extra density costs a couple
 of draw calls rather than hundreds.
+
+**Idle motion:** the hero landmarks slowly breathe — a gentle bob and sway — and the
+volcano's lava pulses brighter and dimmer, so the scenery never looks frozen. It is
+purely cosmetic and is skipped automatically when your system asks for
+*reduced motion*.
 
 A theme only restyles the terrain, sky, fog, props and ground cover. The baseplate, the
 lane and the fortress never change, so a theme cannot alter how a map plays. All scenery
@@ -217,7 +224,7 @@ up — a single 1500-HP brick that takes **10** from the keep if it gets through
   board is cheaper.
 
 **As the attacker** the economy is different: you start with **160 bricks** and earn
-only **5 bricks per second**. That trickle is just enough to keep deploying; it will
+only **3 bricks per second**. That trickle is just enough to keep deploying; it will
 not fund an army. There is no wave bonus and no early-call payout, because there are no
 waves to call. **Killing towers is the attacker's real income** — a bounty of **45
 bricks**, or **70** for an upgraded one — so every tower you break pays for the next
@@ -242,7 +249,7 @@ sooner; spread out too much and you can strand two lonely tier 1s.
 
 ---
 
-## 6. The eight turrets
+## 6. The twelve turrets
 
 | # | Tower | Element | Cost | Role |
 | --- | --- | --- | --- | --- |
@@ -254,9 +261,15 @@ sooner; spread out too much and you can strand two lonely tier 1s.
 | 6 | **Long Shot** | Physical | 95 | Range 6.4 and a 44-damage hit, but a 2.3s reload. Picks off tanks from across the map. |
 | 7 | **Cluster** | Ice | 85 | Short-range scatter with a 1.3-tile splash that also chills. Weak alone, lethal in a pack. |
 | 8 | **Beacon** | Support | 70 | **Deals no damage.** Projects a field: nearby towers hit ~18% harder and fire ~12% faster. |
+| 9 | **Acid Rain** | Poison | 120 | Lobs a glob that splashes burning acid over a whole pack. Weak hit, brutal lingering burn. |
+| 0 | **Rail Gun** | Lightning | 150 | A charged slug that punches clean through a line of enemies. Range 6.5, slow reload. |
+| - | **Buckshot** | Physical | 90 | Close-range salvo. Fires a tight burst of rounds — devastating up close, useless far off. |
+| = | **Deep Freeze** | Ice | 105 | One heavy frost bolt that nearly stops a target. Poor damage, the strongest slow in the game. |
 
 Tiers raise range, damage and special effects. Mortar tier 3 fires a double shell; Tesla
-coil tier 3 chains to three targets; freezer tier 3 slows by 55%.
+coil tier 3 chains to three targets; freezer tier 3 slows by 55%; Acid Rain tier 3 poisons
+a wider area for longer; Rail Gun tier 3 skewers four targets; Buckshot tier 3 adds a
+fourth round; Deep Freeze tier 3 slows by 70% for over four seconds.
 
 **Beacon tips:** the aura is a visible circle on the ground and covers about 2.6 tiles
 at MK1, 3.4 at MKIII. Buffs stack additively on damage (capped at +80%) and multiply
@@ -272,7 +285,7 @@ range — the one closest to your gate.
 
 ### Enemies that shoot at your towers
 
-Three enemy types ignore your fortress and open fire on your **towers** instead. Towers
+Two enemy types ignore your fortress and open fire on your **towers** instead. Towers
 are no longer indestructible: every tower has a **HULL**, shown in the inspector when
 you select it, and a tower at 0 hull is destroyed and its cell becomes empty.
 
@@ -280,19 +293,21 @@ you select it, and a tower at 0 hull is destroyed and its cell becomes empty.
 | --- | --- | --- | --- | --- | --- | --- |
 | **BOW BRICK** | 9 | 3.4 studs | 5 | 1.50s | — | Single arrow, steady poke |
 | **GUN BRICK** | 13 | 4.2 studs | 4 | 0.55s | — | Fast weak rounds, never stops |
-| **ROCKET BRICK** | 17 | 6.0 studs | 26 | 3.20s | 1.5 studs | Splash: deletes tower clusters |
+| **BRICK CATAPULT** | 16 | 5.2 studs | 16 | 2.60s | 1.1 studs | Lobs a boulder; splashes every tower nearby |
 
 Tower hull by tier: Shooter 100 / 165, Mortar 85 / 136, Freezer 110 / 176, Coil 80 / 128,
-Sprayer 95 / 152 (tier 1 / tier 3). Tier 3 towers are far tougher, so a finished
-combined tower is a safe place to build behind.
+Sprayer 95 / 152, Long Shot 70 / 112, Cluster 95 / 152, Beacon 120 / 192, Acid Rain 90 /
+144, Rail Gun 75 / 120, Buckshot 105 / 168, Deep Freeze 100 / 160 (tier 1 / tier 3).
+Tier 3 towers are far tougher, so a finished combined tower is a safe place to build
+behind.
 
 **What to do about it:**
 - Kill the shooter first. An attacker that dies stops shooting instantly.
-- Rocket Brick splash hits everything nearby, so keep towers spaced or bury them behind
-  tier 3 hull.
 - Select a tower to read its HULL. A damaged tower is one wrong wave from gone.
 - Gun Bricks are the most dangerous in numbers because their rate never drops, even
   though each shot is weak.
+- A Brick Catapult outranges most of your turrets and its boulder damages a cluster at
+  once, so snipe it or freeze it before it parks next to your wall.
 
 ### Resistances
 
@@ -309,16 +324,23 @@ Damage is multiplied by the target's resistance. Full table:
 | **Ghost Brick** | 7 | 58 | 1.38 | 1 | **×0** | ×1.1 | ×1.3 | ×1.0 |
 | **Brick Demon** | 10 | 215 | 0.62 | 3 | ×0.55 | **×2.0** | ×1.2 | ×0.9 |
 | **The Overlord** | 20 | 1500 | 0.48 | **10** | ×0.6 | ×1.6 | ×1.1 | ×0.9 |
+| **Frost Wisp** | 8 | 30 | 2.00 | 1 | ×1.0 | ×0.3 | ×1.5 | **×1.8** |
+| **Iron Brute** | 11 | 240 | 0.68 | 3 | ×0.3 | ×1.0 | **×1.8** | ×0.7 |
+| **Gravel Golem** | 15 | 320 | 0.50 | 4 | **×1.8** | ×1.3 | **×0** | ×0.6 |
+| **Brick Catapult** | 16 | 130 | 0.85 | 2 | ×0.8 | ×1.2 | ×1.1 | ×0.8 |
 
-The two hard rules that catch new players:
+The three hard rules that catch new players:
 
 - **A single-element board loses.** Physical-only cannot touch ghosts (×0). Poison-only
-  cannot touch skeletons or zombies (×0). You must mix elements.
+  cannot touch skeletons or zombies (×0). Lightning does nothing to a Gravel Golem (×0).
+  You must mix elements.
 - **Ice is your answer to tanky physical** (zombies and demons take double frost) while
   **physical crushes skeletons**. No one element wins alone.
+- **Match the counter to the unit.** Brutes fold to lightning, Golems to blunt physical,
+  Wisps to poison, and Catapults to anything you can reach them with.
 
 Press `H` in game for the always-current codex. Two tabs: **Towers** shows all
-eight turrets with stats and the Beacon aura, **Enemies** lists the nine invaders.
+twelve turrets with stats and the Beacon aura, **Enemies** lists the twelve invaders.
 
 ---
 

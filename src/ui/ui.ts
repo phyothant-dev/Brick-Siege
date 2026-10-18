@@ -19,6 +19,7 @@ import type { ElementId, EnemyId, TowerId } from '../core/types';
 import { TOTAL_WAVES } from '../core/waves';
 import {
   ATTACKER_COST,
+  ATTACKER_KEY_LABELS,
   ATTACKER_ORDER,
   SIDE_CTA,
   SIDE_INFO,
@@ -27,6 +28,8 @@ import {
 } from '../core/sides';
 import type { Game } from '../game';
 import { ENEMY_ICONS, TOWER_ICONS } from './icons';
+import { brickBurst, cardsEnter, overlayEnter, pressPop, toastDrop, toastLift } from './motion';
+import { enableInspectorDrag } from './inspector';
 import { THEMES, THEME_ORDER } from '../scene/themes';
 import type { ThemeId } from '../scene/themes';
 
@@ -82,7 +85,7 @@ export class Ui {
   private codexBody = $('codex-body');
   private codexEnemies = $('codex-enemies');
 
-  private overlayMode: 'intro' | 'menu' | 'paused' | 'won' | 'lost' = 'intro';
+  private overlayMode: 'menu' | 'paused' | 'won' | 'lost' = 'menu';
   private lastThreat = '';
 
   constructor(game: Game) {
@@ -96,8 +99,9 @@ export class Ui {
     this.refreshSideUi();
     this.wireButtons();
     this.wireEvents();
+    enableInspectorDrag();
 
-    this.showOverlay('intro');
+    this.showOverlay('menu');
     this.refreshHud();
   }
 
@@ -150,10 +154,10 @@ export class Ui {
   /** Attacker unit palette. Replaces the tower shop while attacking. */
   private buildAttackPalette(): void {
     const row = $('attack-row');
-    row.innerHTML = ATTACKER_ORDER.map((id) => {
+    row.innerHTML = ATTACKER_ORDER.map((id, i) => {
       const spec = ENEMIES[id];
       return `<button class="build-btn" data-unit="${id}" title="${spec.name}">
-          <span class="build-btn__key">${ATTACKER_ORDER.indexOf(id) + 1}</span>
+          <span class="build-btn__key">${ATTACKER_KEY_LABELS[i] ?? ''}</span>
           <span class="build-btn__icon" data-icon="${id}"></span>
           <span class="build-btn__name">${spec.name}</span>
           <span class="build-btn__meta"><em>HP ${spec.hp}</em><b class="cost">${ATTACKER_COST[id]}</b></span>
@@ -230,7 +234,8 @@ export class Ui {
                t1.splash ? ` &middot; SPLASH <b>${t1.splash}</b>` : ''
              }${t1.slow ? ` &middot; SLOW <b>${Math.round(t1.slow * 100)}%</b>` : ''}${
                t1.poisonDps ? ` &middot; POISON <b>${t1.poisonDps}/s</b>` : ''
-             }${t1.chain ? ` &middot; CHAIN <b>${t1.chain}</b>` : ''}</p>
+             }${t1.chain ? ` &middot; CHAIN <b>${t1.chain}</b>` : ''
+             }${t1.burst ? ` &middot; BURST <b>${t1.burst}</b>` : ''}</p>
            <p style="margin-top:4px;color:rgba(255,255,255,.4)">
              MKIII: RNG ${t3.range} &middot; DMG ${t3.damage} &middot; EVERY ${t3.cooldown}s
            </p>`;
@@ -308,6 +313,14 @@ export class Ui {
       btn.addEventListener('click', () => sfx('click'));
     }
 
+    // Motion tap feedback for anything pressable.
+    document.addEventListener('pointerdown', (e) => {
+      const el = (e.target as HTMLElement).closest<HTMLElement>(
+        'button:not(:disabled), .map-card, .theme-btn, .side-btn',
+      );
+      if (el) pressPop(el);
+    });
+
     this.speedBtn.addEventListener('click', () => {
       const next = this.game.state.speed === 1 ? 2 : 1;
       this.game.setSpeed(next);
@@ -351,17 +364,10 @@ export class Ui {
       // Restart first so the menu always shows a fresh, unstarted board rather
       // than a half-finished run.
       this.game.restart();
-      this.showOverlay('intro');
+      this.showOverlay('menu');
     });
 
     this.ovPrimary.addEventListener('click', () => {
-      if (this.overlayMode === 'intro') {
-        this.overlayBox.classList.remove('intro-anim');
-        this.ovPrimary.classList.remove('pulse');
-        const c=document.getElementById('game-canvas'); if(c){ c.style.opacity='1'; c.style.visibility='visible'; }
-        this.showOverlay('menu');
-        return;
-      }
       if (this.overlayMode === 'menu') {
         this.game.begin();
         this.showOverlay(null);
@@ -725,12 +731,12 @@ export class Ui {
     el.className = `toast toast--${tone}`;
     el.textContent = text;
     this.toasts.append(el);
+    toastDrop(el);
 
     while (this.toasts.childElementCount > 4) this.toasts.firstElementChild?.remove();
 
     window.setTimeout(() => {
-      el.classList.add('is-out');
-      window.setTimeout(() => el.remove(), 320);
+      toastLift(el).then(() => el.remove());
     }, 1700);
   }
 
@@ -782,7 +788,7 @@ export class Ui {
       .join('')}</div>`;
   }
 
-  showOverlay(mode: 'intro' | 'menu' | 'paused' | 'won' | 'lost' | null): void {
+  showOverlay(mode: 'menu' | 'paused' | 'won' | 'lost' | null): void {
     if (!mode) {
       this.overlay.classList.add('hidden');
       this.overlayMode = 'menu';
@@ -794,6 +800,8 @@ export class Ui {
     // Only the menu needs the wide frame; pause and result screens are a
     // handful of lines and looked lost inside it.
     this.overlayBox.classList.toggle('overlay__box--compact', mode !== 'menu');
+    // The "choose your side" menu gets the LEGO blue/yellow brick treatment.
+    this.overlayBox.classList.toggle('overlay__box--menu', mode === 'menu');
 
     // The map / side / theme pickers belong to the menu only. Leaving them on
     // the pause screen made it 736px tall and let you switch map mid-run.
@@ -804,24 +812,6 @@ export class Ui {
     $('map-picker')?.classList.toggle('hidden', !menuOnly);
     this.overlayBox.querySelector('.side-picker')?.classList.toggle('is-hidden', !menuOnly);
     this.overlayBox.querySelector('.theme-picker')?.classList.toggle('is-hidden', !menuOnly);
-
-    if (mode === 'intro') {
-      this.ovMenu.hidden = true;
-      this.overlayBox.querySelector('.side-picker')?.classList.toggle('is-hidden', true);
-      this.overlayBox.querySelector('.theme-picker')?.classList.toggle('is-hidden', true);
-      $('map-picker')?.classList.toggle('hidden', true);
-      this.overlayBox.classList.remove('overlay__box--compact');
-      this.overlayBox.classList.add('intro-anim');
-      this.ovTitle.style.fontSize = "clamp(3rem, 10vw, 6rem)";
-      this.ovTitle.textContent = 'BRICK SIEGE';
-      this.ovTag.textContent = 'TOWER DEFENSE';
-      this.ovBody.innerHTML = `<p style="margin-bottom:12px; opacity:.9">Fortify the keep, stop the horde.</p>`;
-      this.ovPrimary.classList.add('pulse');
-      this.ovPrimary.style.padding = '12px 36px'; this.ovPrimary.style.fontSize = '1rem';
-      this.ovPrimary.textContent = 'PLAY';
-
-      return;
-    }
 
     if (mode === 'menu') {
       this.ovTitle.textContent = 'BRICK SIEGE';
@@ -836,6 +826,8 @@ export class Ui {
         </ul>`;
       this.ovPrimary.textContent = SIDE_CTA[this.game.side];
       this.refreshMapCards();
+      overlayEnter(this.overlayBox);
+      cardsEnter(this.overlayBox, '.map-card, .theme-btn, .side-btn');
       return;
     }
 
@@ -846,6 +838,7 @@ export class Ui {
         `<p style="margin-top:10px">Click below or press <strong>ESC</strong> to get back to it.
          Want a different map or side? Use <strong>MAIN MENU</strong>.</p>`;
       this.ovPrimary.textContent = 'RESUME';
+      overlayEnter(this.overlayBox);
       return;
     }
 
@@ -883,6 +876,8 @@ export class Ui {
       }</p>`;
 
     this.ovPrimary.textContent = won ? 'BUILD AGAIN' : 'REBUILD';
+    overlayEnter(this.overlayBox);
+    if (won) brickBurst(this.overlayBox);
   }
 }
 

@@ -13,6 +13,17 @@
   --panel-bg: var(--lego-black);
   --panel-fg: var(--lego-yellow);
   --slot-bg: rgba(255, 255, 255, 0.06);
+
+  /* Shared bottom-bar geometry: #shop-bar and #attack-bar both read these, so
+     the attacker palette is always exactly as wide as the tower shop at every
+     breakpoint. #attack-bar's width is derived from them (it has no wave
+     button, so --bar-wave-w is added to imitate the shop's one-row span).
+     Sized so all twelve towers plus the wave button fit one desktop row. */
+  --bar-gap: 8px;
+  --bar-pad-y: 10px;
+  --bar-pad-x: 10px;
+  --bar-btn-w: 84px;
+  --bar-wave-w: 122px;
 }
 
 * {
@@ -293,7 +304,39 @@ body {
   max-height: clamp(240px, 50dvh, 70dvh);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  z-index: 20;
+  /* Above the top bar and the shop/attack bars (all z-index 20) so a dragged
+     panel is never hidden behind them. */
+  z-index: 25;
+}
+
+.inspector__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--lego-blue);
+  padding: 8px 10px;
+  border-bottom: 4px solid var(--lego-black);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  /* The drag handle stays put while the stats scroll beneath it. */
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+.inspector__head::before {
+  content: '\2807';
+  font-size: 0.9rem;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.55);
+  margin-right: 6px;
+}
+#inspector.is-dragging .inspector__head {
+  cursor: grabbing;
+}
+#inspector.is-dragging {
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.55);
 }
 
 .inspector__head {
@@ -321,6 +364,8 @@ body {
   cursor: pointer;
   font-family: 'Ubuntu Mono', monospace;
   font-weight: 700;
+  margin-left: auto;
+  flex: none;
 }
 
 .inspector__tier {
@@ -366,7 +411,15 @@ body {
 .inspector__actions {
   display: flex;
   gap: 8px;
-  padding: 0 10px;
+  padding: 8px 10px;
+  /* Pinned to the bottom of the panel so COMBINE / SELL are always tappable,
+     even when the stat list is taller than the panel and has to scroll. */
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  margin-top: 2px;
+  background: var(--panel-bg);
+  border-top: 4px solid var(--lego-black);
 }
 
 /* ================= SHOP BAR ================= */
@@ -377,22 +430,38 @@ body {
   display: none !important;
 }
 
-#shop-bar {
+#shop-bar,
+#attack-bar {
   position: absolute;
   bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 8px;
-  padding: 10px;
+  gap: var(--bar-gap);
+  padding: var(--bar-pad-y) var(--bar-pad-x);
   z-index: 20;
+  /* Without an explicit width the absolute + left:50% centring makes the bar
+     shrink-to-fit to HALF the viewport, so the shop would wrap far too early.
+     max-content lets it grow to its natural one-row width, then max-width and
+     flex-wrap cap it. */
+  width: max-content;
   max-width: calc(100vw - 24px);
   overflow-x: auto;
   scrollbar-width: none;
 }
 
-#shop-bar::-webkit-scrollbar { display: none; }
-#shop-bar { scrollbar-width: none; }
+#shop-bar::-webkit-scrollbar,
+#attack-bar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Twelve turrets no longer fit one desktop row, so the shop wraps and centres
+   instead of hiding the wave button behind the (deliberately invisible)
+   scrollbar. The attacker palette keeps its own fixed span below. */
+#shop-bar {
+  flex-wrap: wrap;
+  justify-content: center;
+}
 
 /* ---- Pointer-capability switches ----
    Keyboard help is a bottom-left stack, i.e. the same corner the shop bar
@@ -421,43 +490,21 @@ body {
   padding-right: max(10px, env(safe-area-inset-right));
 }
 @media (max-width: 1000px) {
-  #shop-bar {
+  #shop-bar,
+  #attack-bar {
     left: max(2px, env(safe-area-inset-left));
     bottom: max(2px, env(safe-area-inset-bottom));
     right: max(2px, env(safe-area-inset-right));
-    gap: 4px;
-    padding: 4px 6px;
+    --bar-gap: 4px;
+    --bar-pad-y: 4px;
+    --bar-pad-x: 6px;
   }
 }
 
-/* ---- Attacker palette on small screens ---- */
+/* ---- Attacker palette on small screens ----
+   Bar position, padding, gap and max-width come from the shared #shop-bar /
+   #attack-bar rules above — only the unit-button typography differs here. */
 @media (max-width: 1000px) {
-  #attack-bar {
-    bottom: max(2px, env(safe-area-inset-bottom));
-    left: max(2px, env(safe-area-inset-left));
-    right: max(2px, env(safe-area-inset-right));
-    transform: none;
-    max-width: none;
-    padding: 4px 6px;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-  .attack-bar__row {
-    display: flex;
-    flex-direction: row;
-    gap: 4px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    overflow-y: hidden; max-width: calc(100vw - 20px); padding: 1px 1px 4px;
-    scroll-snap-type: x proximity;
-  }
-  .attack-bar__row::-webkit-scrollbar {
-    height: 4px;
-  }
-  .attack-bar__row::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.25);
-  }
   #attack-bar .build-btn {
     width: auto;
     min-width: 0;
@@ -489,12 +536,6 @@ body {
   .attack-bar__hint { font-size: 0.5rem; }
 }
 
-@media (min-width: 641px) and (max-width: 1000px) {
-  .attack-bar__row {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
-
 /* ---- Short landscape phones: give the board back its height ---- */
 @media (orientation: landscape) and (max-height: 500px) {
   #top-bar {
@@ -504,37 +545,26 @@ body {
   #top-bar .stat--threat {
     display: none;
   }
+  body[data-side='attacker'] #top-bar .stat--threat {
+    display: flex;
+  }
   .stat__label {
     font-size: 0.48rem;
   }
   .stat__value {
     font-size: 0.8rem;
   }
-  #shop-bar {
-    padding: 3px;
-    gap: 3px;
-  }
-  .build-btn {
-    min-height: 34px;
-    padding: 2px;
-    border-width: 2px;
-  }
-  .build-btn__icon {
-    width: 24px;
-    height: 24px;
-  }
-  .build-btn__name {
-    font-size: 0.44rem;
-  }
-  .build-btn--wave {
-    min-height: 30px;
-  }
+  /* NOTE: bar/button sizing for short landscape lives in the dedicated block at
+     the end of this file. It has to sit after the base .build-btn rules — a
+     media query carries no extra specificity, so an earlier copy is silently
+     beaten by the base width/padding and the buttons never shrink. */
   #inspector {
     right: 4px;
     top: max(56px, 10vh);
     width: min(220px, 54vw);
-    max-height: min(28vh, 36dvh);
-    max-height: min(50dvh, 66dvh);
+    /* Use the whole short viewport (minus the top offset) instead of a slice of
+       it — the old `50dvh` cap forced the COMBINE/SELL row below the fold. */
+    max-height: calc(100dvh - 64px);
     overflow-y: auto;
     bottom: auto;
   }
@@ -546,7 +576,7 @@ body {
   flex-direction: column;
   align-items: stretch;
   gap: 4px;
-  width: 116px;
+  width: var(--bar-btn-w);
   padding: 8px;
   background: var(--slot-bg);
   border: 3px solid rgba(255, 255, 255, 0.18);
@@ -630,7 +660,7 @@ body {
 }
 
 .build-btn--wave {
-  width: 150px;
+  width: var(--bar-wave-w);
   background: var(--lego-green);
   border-color: #000;
   justify-content: center;
@@ -650,24 +680,29 @@ body {
 }
 
 /* ---- Shop bar: small screens ----
-   Eight towers need ~950px. Below that the bar wraps into a grid and the wave
-   button takes its own full-width row, so nothing is ever parked off the right
-   edge behind a scrollbar we deliberately hide.
+   Twelve towers never fit one row. Below 1000px the bar wraps into a grid
+   (four across on phones, eight across on small tablets) and the wave button
+   takes its own full-width row, so nothing is ever parked off the right edge
+   behind a scrollbar we deliberately hide.
 
    NOTE: this block must stay AFTER the base .build-btn rules. A media query
    carries no extra specificity, so an earlier copy here was silently beaten by
    the base `width: 116px`, which left the buttons overflowing the grid. */
 @media (max-width: 1000px) {
-  #shop-bar {
+  #shop-bar,
+  #attack-bar {
     bottom: 6px;
     left: 6px;
     right: 6px;
     transform: none;
+    --bar-gap: 6px;
+  }
+  #shop-bar {
     justify-content: flex-start;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
     overflow-x: visible;
+    width: auto;
   }
   #shop-bar .build-btn,
   #shop-bar .build-btn--wave {
@@ -688,6 +723,8 @@ body {
     display: inline-block !important;
     white-space: nowrap;
   }
+  #attack-bar .build-btn { width: auto; min-width: 0; }
+  #attack-bar .attack-bar__row { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 }
 
 @media (min-width: 641px) and (max-width: 1000px) {
@@ -1094,6 +1131,12 @@ kbd {
   .stat--threat {
     display: none;
   }
+  /* The attacker has no wave list — TIME LEFT is its only clock, so the box
+     beside the fortress stays even when the defender's NEXT WAVE is dropped
+     to make room. */
+  body[data-side='attacker'] .stat--threat {
+    display: flex;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1120,7 +1163,7 @@ kbd {
     font-size: 0.68rem;
   }
   /* Shop grid is inherited from the <=1000px block; phones only need the
-     tighter metrics so 8 towers + wave cost ~190px instead of ~250px. */
+     tighter metrics so 12 towers + wave cost ~240px instead of ~330px. */
   .build-btn {
     min-height: 44px;
     padding: 3px 2px;
@@ -1156,6 +1199,7 @@ kbd {
     right: 6px;
     width: 196px;
   }
+  #attack-bar .attack-bar__row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 .codex-card__head {
   display: flex;
@@ -1270,9 +1314,9 @@ kbd {
     margin: 14px 0 4px;
     text-align: center;
     padding: 16px 18px;
-    border: 8px solid #000;
-    background: linear-gradient(to bottom, #4d7c40 0%, #3a5d32 50%, #2f4a28 100%);
-    box-shadow: 12px 12px 0 #000;
+    border: none;
+    background: transparent;
+    box-shadow: none;
   }
 .side-picker__label {
   display: block;
@@ -1317,19 +1361,16 @@ kbd {
 }
 
 /* ---- attacker palette ----
-   Sits where the tower shop sits, but the bar is taller because it carries a
-   hint line, so it is pinned slightly higher to stay clear of the safe area. */
+   Shares every layout property with #shop-bar via the grouped base rule, then
+   adds the column stack (hint line above the unit row) and an explicit width
+   sized to the shop's old one-row span (eight unit slots plus the wave button).
+   The unit row is a grid that flows its twelve creatures onto a second row. */
 #attack-bar {
-  position: absolute;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
-  max-width: calc(100vw - 24px);
-  display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 8px;
+  width: calc(
+    12 * var(--bar-btn-w) + 12 * var(--bar-gap) + var(--bar-wave-w) +
+    2 * var(--bar-pad-x)
+  );
 }
 #attack-bar.is-hidden {
   display: none;
@@ -1340,14 +1381,22 @@ kbd {
   color: rgba(255, 255, 255, 0.65);
   text-align: center;
 }
+/* The unit row mirrors the shop bar on desktop: a grid of buttons, each
+   stretched to fill the bar's shop-matched width. minmax() keeps them from
+   going below the shop's 116px slot when the viewport is narrower than the
+   bar, so the bar scrolls exactly like #shop-bar does. With twelve creatures
+   the grid simply flows onto a second row. The four-across and eight-across
+   grids only kick in at the small-screen breakpoints declared at the end of
+   this file. */
 .attack-bar__row {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  scrollbar-width: none;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--bar-gap);
 }
-.attack-bar__row::-webkit-scrollbar { display: none; }
-.attack-bar__row { scrollbar-width: none; }
+#attack-bar .build-btn {
+  width: auto;
+  min-width: 0;
+}
 .attack-bar__row .build-btn.is-active {
   border-color: var(--accent, #ffcf00);
   background: rgba(255, 207, 0, 0.18);
@@ -1459,53 +1508,10 @@ body[data-side='attacker'] .build-btn {
 }
 
 @media (orientation: landscape) and (max-height: 420px) {
-  #attack-bar {
-    bottom: max(1px, env(safe-area-inset-bottom));
-    left: 1px;
-    right: 1px;
-    max-height: 40px;
-    padding: 2px;
-  }
   .attack-bar__hint { display: none; }
-  .attack-bar__row { gap: 2px; overflow-x: auto; flex-wrap: nowrap; }
-  #attack-bar .build-btn__icon { width: 16px; height: 16px; }
-  #attack-bar .build-btn__name { display: block; font-size: 0.38rem; }
-  #attack-bar .build-btn__meta { display: none; }
-  #attack-bar .build-btn__key { top: 1px; right: 1px; font-size: 0.4rem; padding: 0 1px; }
-  #attack-bar .build-btn { flex: 0 0 64px; width: 64px; min-width: 64px; padding: 1px 0; border-width: 1px; border-left-width: 2px; min-height: 28px; }
-  #top-bar { padding: 0 1px; gap: 1px; height: 18px; align-items: center; }
-  #top-bar .stat { padding: 0 1px; min-height: 0; }
-  #top-bar .stat__label { font-size: 0.32rem; line-height: 1; }
-  #top-bar .stat__value { font-size: 0.48rem; line-height: 1; }
-  #top-bar .brick-btn { padding: 0 2px; font-size: 0.4rem; min-height: 16px; border-width: 1px; box-shadow: 1px 1px 0 var(--lego-yellow); }
-  #top-bar .btn-compact { padding: 0 2px; font-size: 0.4rem; }
-  #shop-bar { padding: 1px; gap: 1px; max-height: 34px; overflow-x: auto; }
-  .build-btn { min-height: 22px; flex: 0 0 70px; }
-  #inspector { top: max(24px, 6vh); right: 2px; width: min(200px, 48vw); max-height: min(26vh, 32dvh); max-height: min(52dvh, 68dvh); font-size: 0.46rem; bottom: auto; }
+  #inspector { top: max(24px, 6vh); right: 2px; width: min(200px, 48vw); max-height: calc(100dvh - 32px); font-size: 0.46rem; bottom: auto; }
 }
 
-
-
-@keyframes introPop {
-  0% { opacity: 0; transform: scale(.98) translateY(6px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
-}
-.overlay__box.intro-anim .overlay__title {
-  animation: introPop .4s ease-out forwards;
-  opacity: 0;
-}
-.overlay__box.intro-anim .overlay__tag {
-  animation: introPop .4s ease-out .08s forwards;
-  opacity: 0;
-}
-.overlay__box.intro-anim .overlay__body {
-  animation: introPop .4s ease-out .16s forwards;
-  opacity: 0;
-}
-.overlay__box.intro-anim .overlay__actions {
-  animation: introPop .4s ease-out .24s forwards;
-  opacity: 0;
-}
 
 
 @media (orientation: landscape) {
@@ -1543,18 +1549,10 @@ body[data-side='attacker'] .build-btn {
   }
 }
 @media (max-height: 560px) {
-  #inspector { top: 44px; max-height: min(50dvh, 66dvh); font-size: 0.46rem; }
+  #inspector { top: 44px; max-height: calc(100dvh - 52px); font-size: 0.46rem; }
 }
 @media (max-height: 460px) {
-  #inspector { top: 36px; max-height: min(50dvh, 66dvh); font-size: 0.44rem; }
-}
-
-@keyframes pulseBtn {
-  0%, 100% { transform: scale(1); box-shadow: 8px 8px 0 var(--lego-yellow); }
-  50% { transform: scale(1.02); box-shadow: 10px 10px 0 var(--lego-yellow); }
-}
-.brick-btn--primary.pulse {
-  animation: pulseBtn 1.6s ease-in-out infinite;
+  #inspector { top: 36px; max-height: calc(100dvh - 44px); font-size: 0.44rem; }
 }
 
 .overlay--full::before {
@@ -1568,13 +1566,23 @@ body[data-side='attacker'] .build-btn {
   opacity: 0.25;
   pointer-events: none;
 }
-#menu .overlay__box {
-  border: 10px solid #000;
-  box-shadow: 14px 14px 0 #ffcf00;
-  background: radial-gradient(ellipse at 50% 20%, rgba(33,33,33,0.86) 0%, rgba(33,33,33,0.96) 80%),
-              radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
-  background-size: 32px 32px;
+/* ================= "CHOOSE YOUR SIDE" MENU ACCENTS =================
+   The menu shows over the live scene (the shared `.overlay--full .overlay__box`
+   keeps the panel transparent), so only the text accents are themed: a yellow
+   title with a red drop shadow. */
+#overlay .overlay__box--menu .overlay__title {
+  color: var(--lego-yellow);
+  -webkit-text-stroke: 2px #000;
+  text-shadow: 5px 5px 0 var(--lego-red);
 }
+#overlay .overlay__box--menu .overlay__tag {
+  color: #fff;
+}
+#overlay .overlay__box--menu .overlay__badge {
+  background: var(--lego-yellow);
+  color: var(--lego-black);
+}
+
 .build-btn__meta b#wave-timer{display:inline-block;}
 
 .build-btn--wave .build-btn__meta b#wave-timer { display: inline-block !important; visibility: visible !important; }
@@ -1604,3 +1612,160 @@ body[data-side='attacker'] .build-btn {
 @media (max-width: 1000px){ .build-btn--wave{padding:4px 6px !important;} .build-btn--wave .build-btn__meta em, .build-btn--wave .build-btn__meta b{line-height:1 !important;margin:0 !important;} }
 
 @media (max-width: 480px){ .build-btn--wave{flex-direction:row !important;} .build-btn--wave .build-btn__meta{flex-direction:row !important;} }
+
+/* ---- Attack bar: same responsive rhythm as the shop bar ----
+   Laptop and tablet keep a single row of eight; mobile wraps into two rows
+   of four. The row is already a grid from its base rule — these blocks only
+   swap the column count, so they must come after it (and after the shop's own
+   column rules, which set the same counts) to stay in lockstep. */
+@media (max-width: 1000px) {
+  .attack-bar__row {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+@media (min-width: 641px) and (max-width: 1000px) {
+  .attack-bar__row {
+    grid-template-columns: repeat(8, 1fr);
+  }
+}
+
+/* ================= SHORT LANDSCAPE PHONES =================
+   Landscape phones are wide but only ~320-430px tall, so the portrait layout
+   does not fit: the shop grid wrapped into two/three rows whose full-size
+   buttons (icon over name over cost, ~96px) spilled out of the bar and off the
+   bottom of the screen, and the fixed-height top bar clipped the fortress
+   gauge. This block is deliberately the LAST thing in the file so it outranks
+   every base and breakpoint rule above it (media queries add no specificity).
+
+   Result: the top bar sizes to its content as a single compact row, and both
+   bottom bars become ONE row of small icon buttons — no wrap, nothing off
+   screen, and the board keeps the remaining height. */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* --- Top bar: compact single row that fits its content --- */
+  #top-bar {
+    height: auto;
+    padding: 2px 5px;
+    gap: 4px;
+    align-items: center;
+  }
+  #top-bar .stat {
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+    padding: 1px 5px;
+    min-width: 0;
+  }
+  #top-bar .stat--fortress {
+    min-width: 0;
+  }
+  #top-bar .hpbar {
+    width: 54px;
+    height: 10px;
+    margin: 0;
+  }
+  .stat__label {
+    font-size: 0.5rem;
+  }
+  .stat__value {
+    font-size: 0.72rem;
+  }
+  .stat__value--sm {
+    font-size: 0.6rem;
+    padding-top: 0;
+  }
+  /* Compact the pause/sound/etc. buttons too, or the taller full-size ones at
+     >=900px wide landscape blow the auto-height bar up to ~58px. */
+  #top-bar .brick-btn {
+    padding: 0 5px;
+    min-height: 18px;
+    font-size: 0.5rem;
+    border-width: 2px;
+    box-shadow: 1px 1px 0 var(--lego-yellow);
+  }
+  #top-bar .btn-compact {
+    padding: 0 3px;
+    font-size: 0.46rem;
+  }
+
+  /* --- Bottom bars: one tight row, never taller than the screen --- */
+  #shop-bar,
+  #attack-bar {
+    --bar-gap: 3px;
+    --bar-pad-y: 3px;
+    --bar-pad-x: 3px;
+    max-height: none;
+  }
+  #shop-bar {
+    display: flex;
+    flex-wrap: nowrap;
+  }
+  /* Share the row width evenly; the wave button keeps its natural width. */
+  #shop-bar .build-btn {
+    flex: 1 1 0;
+  }
+  #shop-bar .build-btn--wave {
+    grid-column: auto;
+    flex: 0 1 auto;
+  }
+  .attack-bar__row {
+    grid-template-columns: repeat(8, 1fr);
+  }
+  /* Icon over name over cost, all shrunk so a button is ~40px tall. */
+  .build-btn,
+  #shop-bar .build-btn,
+  #attack-bar .build-btn {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 1px;
+    padding: 2px;
+    min-height: 0;
+    width: auto;
+    min-width: 0;
+  }
+  .build-btn__icon,
+  #attack-bar .build-btn__icon {
+    width: 18px;
+    height: 18px;
+    margin: 0 auto;
+  }
+  .build-btn__icon canvas {
+    width: 18px;
+    height: 18px;
+  }
+  .build-btn__name,
+  #attack-bar .build-btn__name {
+    font-size: 0.38rem;
+    line-height: 1;
+    min-height: 0;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .build-btn__meta,
+  #attack-bar .build-btn__meta {
+    font-size: 0.32rem;
+    display: flex;
+    gap: 2px;
+    justify-content: center;
+  }
+  .build-btn__meta em {
+    font-size: 0.32rem;
+  }
+  .build-btn__meta b {
+    font-size: 0.42rem;
+  }
+  .build-btn__key,
+  #attack-bar .build-btn__key {
+    top: -2px;
+    right: -2px;
+    width: 12px;
+    height: 12px;
+    font-size: 0.32rem;
+    border-width: 2px;
+  }
+  .build-btn--wave {
+    min-height: 0;
+  }
+}

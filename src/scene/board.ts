@@ -21,7 +21,7 @@ import {
 } from '../core/constants';
 import { laneCount, pathPoints } from '../core/path';
 import { DEPLOY_ZONE } from '../core/sides';
-import { brick, cone, plate, roundBrick, slopeBrick } from './builder';
+import { brick, cone, plate, ring as torusRing, roundBrick, slopeBrick } from './builder';
 import { THEMES } from './themes';
 import type { BoardTheme } from './themes';
 import { plastic } from './materials';
@@ -205,6 +205,12 @@ export class Board {
   sceneryKinds: string[] = [];
   /** How many instances of each prop kind the current theme placed. */
   sceneryCounts: Record<string, number> = {};
+  /**
+   * The hero landmark groups of the current theme, refreshed on every rebuild.
+   * Exposed so the ambient animation layer can breathe life into them without
+   * reaching into the merged scenery.
+   */
+  readonly landmarks: THREE.Object3D[] = [];
 
   private banner!: THREE.Mesh;
   private gateGlows: THREE.MeshStandardMaterial[] = [];
@@ -743,6 +749,7 @@ export class Board {
     const decor = new THREE.Group();
     this.sceneryKinds.length = 0;
     this.sceneryCounts = {};
+    this.landmarks.length = 0;
     // Lava belongs to the volcano theme only; without this the previous theme's
     // material stayed referenced after its volcano was disposed.
     this.lavaMat = null;
@@ -859,7 +866,7 @@ export class Board {
     // Hero set dressing. Built at a larger scale than the scatter so the theme
     // reads instantly, and kept off the playfield.
 
-    /** Stepped pyramid: three shrinking plates with a capstone. */
+    /** Stepped pyramid: four shrinking plates, a shaded face and a gold capstone. */
     const pyramid = (): THREE.Group => {
       const g = new THREE.Group();
       const sand = plastic(theme.horizonAlt, { roughness: 0.86 });
@@ -879,6 +886,10 @@ export class Board {
       const face = new THREE.Mesh(slopeBrick(10, 10), sand);
       face.position.set(0, PITCH * 0.3, PITCH * 2.6);
       g.add(face);
+      // Gilded capstone — the detail that makes it read as a pyramid, not a ziggurat.
+      const cap = new THREE.Mesh(cone(1.5, 1.2), plastic(LEGO.brightYellow, { roughness: 0.28, metalness: 0.25 }));
+      cap.position.y = 3 * PITCH * 0.62 + BRICK_H;
+      g.add(cap);
       return g;
     };
 
@@ -1161,13 +1172,176 @@ export class Board {
       return g;
     };
 
+    /** Giant broadleaf: a towering hero tree that anchors the forest skyline. */
+    const bigTree = (): THREE.Group => {
+      const g = new THREE.Group();
+      for (let i = 0; i < 3; i++) {
+        const seg = new THREE.Mesh(brick(2, 2, false), trunk);
+        seg.position.y = BRICK_H * (i + 0.5);
+        g.add(seg);
+      }
+      const crown: [number, number, THREE.Material][] = [
+        [8, BRICK_H * 3.4, leaf],
+        [6, BRICK_H * 4.4, leafDark],
+        [4, BRICK_H * 5.4, leaf],
+        [2, BRICK_H * 6.4, leafDark],
+      ];
+      for (const [size, y, mat] of crown) {
+        const c = new THREE.Mesh(brick(size, size, false), mat);
+        c.position.y = y;
+        g.add(c);
+      }
+      const tip = new THREE.Mesh(cone(2.6, 2.4), leaf);
+      tip.position.y = BRICK_H * 7.1;
+      g.add(tip);
+      return g;
+    };
+
+    /** Campfire: a ring of stones around crossed logs with a glowing flame. */
+    const campfire = (): THREE.Group => {
+      const g = new THREE.Group();
+      const stone = plastic(theme.wood, { roughness: 0.95 });
+      const log = plastic(LEGO.redBrown, { roughness: 0.85 });
+      const flame = plastic(0xff7a1a, { roughness: 0.4, emissive: 0xff4d0f, emissiveIntensity: 1.5 });
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const s = new THREE.Mesh(roundBrick(1, BRICK_H * 0.8), stone);
+        s.position.set(Math.cos(a) * PITCH * 1.7, 0, Math.sin(a) * PITCH * 1.7);
+        s.rotation.y = a;
+        g.add(s);
+      }
+      const l1 = new THREE.Mesh(brick(5, 1, false), log);
+      l1.position.y = BRICK_H * 0.7;
+      l1.rotation.y = 0.5;
+      const l2 = new THREE.Mesh(brick(5, 1, false), log);
+      l2.position.y = BRICK_H * 1.2;
+      l2.rotation.y = 0.5 + Math.PI / 2.4;
+      g.add(l1, l2);
+      const glow = new THREE.Mesh(cone(1.4, 1.8), flame);
+      glow.position.y = BRICK_H * 0.9;
+      g.add(glow);
+      return g;
+    };
+
+    /** Oasis: a blue pool ringed with a sand lip, palms and reeds. */
+    const oasis = (): THREE.Group => {
+      const g = new THREE.Group();
+      const water = plastic(0x2f8fd0, {
+        roughness: 0.14,
+        metalness: 0.15,
+        transparent: true,
+        opacity: 0.88,
+      });
+      const pool = new THREE.Mesh(new THREE.CircleGeometry(PITCH * 5, 24), water);
+      pool.rotation.x = -Math.PI / 2;
+      pool.position.y = PITCH * 0.12;
+      g.add(pool);
+      const lip = new THREE.Mesh(torusRing(5.2, 0.5, 24), plastic(theme.horizonAlt, { roughness: 0.92 }));
+      lip.rotation.x = -Math.PI / 2;
+      lip.position.y = PITCH * 0.16;
+      g.add(lip);
+      for (let i = 0; i < 3; i++) {
+        const a = (i / 3) * Math.PI * 2 + 0.5;
+        const p = palm();
+        p.position.set(Math.cos(a) * PITCH * 5.4, 0, Math.sin(a) * PITCH * 5.4);
+        p.scale.setScalar(0.95);
+        p.rotation.y = -a + Math.PI;
+        g.add(p);
+      }
+      const reed = plastic(LEGO.green, { roughness: 0.75 });
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2 + 1.1;
+        const r = new THREE.Mesh(cone(0.4, 1.4 + (i % 2) * 0.6), reed);
+        r.position.set(Math.cos(a) * PITCH * 4.4, PITCH * 0.1, Math.sin(a) * PITCH * 4.4);
+        r.rotation.z = (i % 2 ? 1 : -1) * 0.16;
+        g.add(r);
+      }
+      return g;
+    };
+
+    /** Ice arch: two frozen columns meeting under a curved lintel. */
+    const iceArch = (): THREE.Group => {
+      const g = new THREE.Group();
+      const ice = plastic(LEGO.white, { roughness: 0.32, metalness: 0.06 });
+      const blue = plastic(LEGO.lightBluishGray, { roughness: 0.4 });
+      const block = (x: number, y: number, w: number, mat: THREE.Material): void => {
+        const m = new THREE.Mesh(brick(w, 3, false), mat);
+        m.position.set(x * PITCH, y * PITCH, 0);
+        g.add(m);
+      };
+      for (let i = 0; i < 5; i++) {
+        block(-2.6, i, 2, i % 2 ? blue : ice);
+        block(2.6, i, 2, i % 2 ? ice : blue);
+      }
+      block(-1.6, 5, 2, ice);
+      block(0, 5.7, 2, blue);
+      block(1.6, 5, 2, ice);
+      return g;
+    };
+
+    /** Obsidian spire: a jagged cluster of glassy black shards. */
+    const obsidianSpire = (): THREE.Group => {
+      const g = new THREE.Group();
+      const black = plastic(LEGO.black, { roughness: 0.3 });
+      const dark = plastic(0x1a1512, { roughness: 0.46 });
+      const shards: [number, number, number, number][] = [
+        [0, 0, 7.5, 1.7],
+        [1.5, 0.9, 4.6, 1.15],
+        [-1.3, -1.0, 5.4, 1.25],
+        [0.7, -1.4, 3.6, 0.95],
+      ];
+      for (let i = 0; i < shards.length; i++) {
+        const [dx, dz, h, r] = shards[i];
+        const shard = new THREE.Mesh(cone(r, h), i % 2 ? dark : black);
+        shard.position.set(dx * PITCH, 0, dz * PITCH);
+        shard.rotation.set(i % 2 ? 0.09 : -0.07, i, i % 2 ? 0.12 : -0.13);
+        g.add(shard);
+      }
+      return g;
+    };
+
+    /** Lava pit: a molten pool inside a cracked rock rim. */
+    const lavaPit = (): THREE.Group => {
+      const g = new THREE.Group();
+      const lava = new THREE.MeshStandardMaterial({
+        color: theme.glow ?? 0xff5a1f,
+        emissive: new THREE.Color(theme.glow ?? 0xff5a1f),
+        emissiveIntensity: 1.9,
+        roughness: 0.42,
+      });
+      this.lavaMat = this.lavaMat ?? lava;
+      const pit = new THREE.Mesh(new THREE.CircleGeometry(PITCH * 4.6, 20), lava);
+      pit.rotation.x = -Math.PI / 2;
+      pit.position.y = PITCH * 0.12;
+      g.add(pit);
+      const rock = plastic(theme.wood, { roughness: 0.96 });
+      for (let i = 0; i < 7; i++) {
+        const a = (i / 7) * Math.PI * 2;
+        const r = new THREE.Mesh(slopeBrick(2, 2), rock);
+        r.position.set(Math.cos(a) * PITCH * 4.3, 0, Math.sin(a) * PITCH * 4.3);
+        r.rotation.y = -a;
+        g.add(r);
+      }
+      return g;
+    };
+
     const landmarkMakers: Record<string, () => THREE.Group> = {
       pyramid,
       sphinx,
-      iceberg,
-      volcano,
+      obelisk,
       boulder,
       stump,
+      bigTree,
+      campfire,
+      oasis,
+      iceberg,
+      iceArch,
+      igloo,
+      polarBear,
+      volcano,
+      obsidian,
+      obsidianSpire,
+      lavaPit,
     };
 
     const bush = (x: number, z: number, color: number): THREE.Mesh => {
@@ -1289,12 +1463,17 @@ export class Board {
     pile.position.set(ring * 0.4, -0.5, ring * 1.08);
     decor.add(pile);
 
-    // Hero props sit at fixed spots well clear of the baseplate.
+    // Hero props sit at fixed spots just clear of the baseplate. Bumped up in
+    // scale so they read as landmarks rather than large scatter from the play
+    // camera, and pulled a touch closer than the outer scatter so the eye lands
+    // on them.
     const landmarkSpots: [number, number, number, number][] = [
-      [-ring * 1.34, ring * 0.62, 1.15, 0.5],
-      [ring * 1.28, -ring * 0.72, 0.95, 2.1],
-      [-ring * 0.55, ring * 1.32, 0.8, 1.1],
-      [ring * 0.95, ring * 1.18, 0.7, 3.4],
+      [-ring * 1.12, ring * 0.52, 1.75, 0.5],
+      [ring * 1.08, -ring * 0.6, 1.5, 2.1],
+      [-ring * 0.46, ring * 1.12, 1.3, 1.1],
+      [ring * 0.82, ring * 1.02, 1.12, 3.4],
+      [ring * 1.14, ring * 0.48, 1.4, 5.2],
+      [-ring * 0.9, -ring * 1.0, 1.22, 0.3],
     ];
     theme.landmarks.forEach((kind, i) => {
       const make = landmarkMakers[kind];
@@ -1306,6 +1485,7 @@ export class Board {
       o.rotation.y = rot;
       addShadows(o);
       decor.add(o);
+      this.landmarks.push(o);
       this.sceneryKinds.push(kind);
       count(kind, 1);
     });

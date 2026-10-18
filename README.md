@@ -12,8 +12,8 @@ background music are synthesised at runtime with the Web Audio API, so there are
 either. The score changes with the game: a sparse menu theme, a steady build-phase pulse, a
 driving battle theme, and a lift or fall when the run ends.
 
-**New to the game? Read the [full player manual](README-game-manual.md)** — rules, the five turrets,
-the resistance table, economy, combining, and strategy.
+**New to the game? Read the [full player manual](README-game-manual.md)** — rules, the twelve
+turrets, the resistance table, economy, combining, and strategy.
 
 ---
 
@@ -22,12 +22,15 @@ the resistance table, economy, combining, and strategy.
 - **A 14×14 stud board** with the keep dead centre and an inward-spiralling lane: the horde enters at
   the south-west corner and winds east, north, west, south, tightening one buildable gutter per
   revolution until it reaches the gate.
-- **5 tower types** — Brick Shooter, Mortar, Freezer, Tesla Coil, Sprayer, each with a distinct role.
+- **12 tower types** — Brick Shooter, Mortar, Freezer, Tesla Coil, Sprayer, Long Shot, Cluster,
+  Beacon, Acid Rain, Rail Gun, Buckshot and Deep Freeze, each with a distinct role.
 - **Combining instead of upgrading** — drag two matching towers of the same tier together to merge
   them into a stronger tier. Three tiers maximum, so positioning matters more than spamming one tower.
-- **6 enemy types with an elemental resistance matrix** — Ghosts are completely immune to physical
-  damage, Skeletons are immune to poison, Demons and the Overlord take double from ice. A
-  single-element board *will* lose. You are expected to swap bricks mid-run.
+- **12 enemy types with an elemental resistance matrix** — Ghosts are completely immune to physical
+  damage, Skeletons are immune to poison, Gravel Golems have no fear of lightning, Frost Wisps dash
+  past the cold, Iron Brutes shrug off bricks, and Brick Catapults shell your walls from five tiles
+  away. Demons and the Overlord take double from ice. A single-element board *will* lose. You are
+  expected to swap bricks mid-run.
 - **25 hand-tuned waves** ending in a boss.
 - **Full economy** — kill rewards, wave rewards, early-call bonuses, and a 60% sell refund.
 - **Camera** — free orbit, pinch/scroll zoom and WASD panning.
@@ -38,7 +41,7 @@ the resistance table, economy, combining, and strategy.
 
 | Action | Input |
 | --- | --- |
-| Select tower to build | `1` `2` `3` `4` `5` |
+| Select tower to build | `1`–`9`, `0`, `-`, `=` |
 | Build at cell | Left click |
 | Select existing tower | Left click with nothing armed |
 | Combine towers | `C`, or the **COMBINE** button, then click the partner |

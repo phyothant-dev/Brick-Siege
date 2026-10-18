@@ -440,44 +440,181 @@ function buildGunner(spec: EnemySpec): THREE.Group {
   return g;
 }
 
-function buildLauncher(spec: EnemySpec): THREE.Group {
+/** IRON BRUTE: a slab of armour on legs. */
+function buildBrute(spec: EnemySpec): THREE.Group {
   const g = new THREE.Group();
   const body = new THREE.Group();
   body.name = 'body';
 
-  const tracks = part(brick(12, 3, false), 0x2f2b25);
-  tracks.position.y = 0.24;
-  body.add(tracks);
+  const legs = new THREE.Group();
+  for (const side of [-1, 1]) {
+    const leg = part(limbGeometry(0.36, 0.14), spec.color);
+    leg.name = side < 0 ? 'legL' : 'legR';
+    leg.position.set(side * 0.15, 0.3, 0);
+    legs.add(leg);
+  }
+  g.add(legs);
 
-  const hull = part(brick(10, 5, false), spec.color);
-  hull.position.y = 0.72;
-  hull.name = 'torso';
-  body.add(hull);
+  const hips = part(brick(4, 3, false), spec.accent);
+  hips.position.y = 0.3;
+  body.add(hips);
 
-  const cab = part(brick(5, 4, false), 0x5d564a);
-  cab.position.set(-0.2, 1.14, 0);
-  cab.name = 'head';
-  body.add(cab);
-  eyes(cab, 0.1, 0.12, 0xffb300, 1.2);
+  const torso = part(brick(5, 3, false), spec.color);
+  torso.position.y = 0.5;
+  body.add(torso);
 
-  // Tube launcher, angled up.
-  const weapon = new THREE.Group();
-  weapon.name = 'weapon';
-  const tube = part(post(1.5, 3.4), 0x3d4a2f);
-  tube.rotation.x = Math.PI / 2.35;
-  tube.position.set(0, 0, 0.7);
-  weapon.add(tube);
-  const muzzle = part(cone(1.5, 1.1), 0x22262b);
-  muzzle.rotation.x = Math.PI / 2;
-  muzzle.position.set(0, 0.62, 1.5);
-  weapon.add(muzzle);
-  weapon.position.set(0.1, 1.02, 0.3);
-  body.add(weapon);
+  const chest = part(plate(5, 2), spec.accent);
+  chest.position.set(0, 0.56, 0.16);
+  body.add(chest);
 
-  const warhead = part(cone(1.1, 1.6), spec.accent);
-  warhead.rotation.z = Math.PI;
-  warhead.position.set(-0.36, 1.0, -0.2);
-  body.add(warhead);
+  for (const side of [-1, 1]) {
+    const pauldron = part(roundBrick(2.4, PLATE_H * 2), spec.accent);
+    pauldron.position.set(side * 0.28, 0.66, 0);
+    body.add(pauldron);
+
+    const arm = part(limbGeometry(0.42, 0.16), spec.color);
+    arm.name = side < 0 ? 'armL' : 'armR';
+    arm.position.set(side * 0.32, 0.5, 0);
+    arm.rotation.z = side * 0.12;
+    body.add(arm);
+  }
+
+  const helm = part(roundBrick(3.4, 0.22), spec.color);
+  helm.position.y = 0.78;
+  helm.name = 'head';
+  body.add(helm);
+
+  const visor = part(brick(4, 1, false), LEGO.black);
+  visor.position.set(0, 0.79, 0.14);
+  body.add(visor);
+  eyes(body, 0.79, 0.09, LEGO.orange, 0.6);
+
+  g.add(body);
+  return g;
+}
+
+/** FROST WISP: a darting cold spark. */
+function buildWisp(spec: EnemySpec): THREE.Group {
+  const g = new THREE.Group();
+  const body = new THREE.Group();
+  body.name = 'body';
+
+  const shell = part(sphere(3), spec.color, {
+    transparent: true,
+    opacity: 0.6,
+    emissive: spec.accent,
+    glow: 1.4,
+  });
+  body.add(shell);
+
+  const core = part(sphere(1.4), spec.accent, { emissive: spec.accent, glow: 1.6 });
+  core.castShadow = false;
+  body.add(core);
+
+  eyes(body, 0.05, 0.09, LEGO.white);
+  for (const side of [-1, 1]) {
+    const pupil = part(sphere(0.4), LEGO.black);
+    pupil.position.set(side * 0.09, 0.05, 0.15);
+    pupil.castShadow = false;
+    body.add(pupil);
+  }
+
+  for (let i = 0; i < 3; i++) {
+    const w = part(sphere(0.6), spec.accent, { emissive: spec.accent, glow: 1.2 });
+    w.name = `wisp${i}`;
+    w.position.set((i - 1) * 0.14, -0.2, 0);
+    w.castShadow = false;
+    body.add(w);
+  }
+
+  g.add(body);
+  return g;
+}
+
+/** GRAVEL GOLEM: a slow walking pile of rubble. */
+function buildGolem(spec: EnemySpec): THREE.Group {
+  const g = new THREE.Group();
+  const body = new THREE.Group();
+  body.name = 'body';
+
+  const legs = new THREE.Group();
+  for (const side of [-1, 1]) {
+    const leg = part(brick(3, 3, false), spec.color);
+    leg.name = side < 0 ? 'legL' : 'legR';
+    leg.position.set(side * 0.18, 0.28, 0);
+    legs.add(leg);
+  }
+  g.add(legs);
+
+  const torso = part(brick(6, 4, false), spec.color);
+  torso.position.y = 0.56;
+  body.add(torso);
+
+  const slab = part(plate(6, 3), spec.accent);
+  slab.position.set(0, 0.62, 0.18);
+  body.add(slab);
+
+  eyes(body, 0.72, 0.13, LEGO.brightYellow, 0.9);
+
+  for (const side of [-1, 1]) {
+    const arm = part(brick(2, 5, false), spec.color);
+    arm.name = side < 0 ? 'armL' : 'armR';
+    arm.position.set(side * 0.42, 0.52, 0);
+    body.add(arm);
+  }
+
+  const head = part(brick(4, 2, false), spec.accent);
+  head.position.y = 0.88;
+  head.name = 'head';
+  body.add(head);
+
+  for (let i = 0; i < 4; i++) {
+    const rock = part(roundBrick(0.9 + (i % 2) * 0.5, PLATE_H * 1.6), spec.accent);
+    rock.position.set((i - 1.5) * 0.16, 0.78 + (i % 2) * 0.06, -0.2);
+    body.add(rock);
+  }
+
+  g.add(body);
+  return g;
+}
+
+/** BRICK CATAPULT: a wheeled engine that lobs boulders at the walls. */
+function buildCatapult(spec: EnemySpec): THREE.Group {
+  const g = new THREE.Group();
+  const body = new THREE.Group();
+  body.name = 'body';
+
+  const chassis = part(brick(4, 6, false), spec.color);
+  chassis.position.y = 0.34;
+  body.add(chassis);
+
+  const deck = part(plate(4, 5), spec.accent);
+  deck.position.y = 0.46;
+  body.add(deck);
+
+  const wheels = new THREE.Group();
+  for (const side of [-1, 1]) {
+    const wheel = part(roundBrick(1.8, PLATE_H * 4), LEGO.black);
+    wheel.rotation.x = Math.PI / 2;
+    wheel.position.set(side * 0.28, 0.28, 0);
+    wheels.add(wheel);
+  }
+  g.add(wheels);
+
+  const arm = part(brick(2, 6, false), spec.accent);
+  arm.name = 'armL';
+  arm.position.set(0, 0.66, -0.4);
+  arm.rotation.x = -0.9;
+  body.add(arm);
+
+  const bucket = part(roundBrick(2.2, PLATE_H * 2), LEGO.flatGray);
+  bucket.position.set(0, 1.0, -1.35);
+  body.add(bucket);
+
+  const head = part(brick(3, 3, false), spec.color);
+  head.position.set(0, 0.6, 0.7);
+  head.name = 'head';
+  body.add(head);
 
   g.add(body);
   return g;
@@ -492,7 +629,10 @@ const TEMPLATES: Record<EnemyId, (spec: EnemySpec) => THREE.Group> = {
   overlord: buildOverlord,
   archer: buildArcher,
   gunner: buildGunner,
-  launcher: buildLauncher,
+  brute: buildBrute,
+  wisp: buildWisp,
+  golem: buildGolem,
+  catapult: buildCatapult,
 };
 
 const templates = new Map<EnemyId, THREE.Group>();
@@ -619,8 +759,19 @@ export class EnemyView {
     this.model.scale.setScalar(s);
     this.baseY = this.type === 'ghost' ? 0.24 * s : 0;
 
-    const barY = (this.type === 'overlord' ? 1.5 : this.type === 'ghost' ? 1.15 : 1.05) * s;
-    this.barFrame.position.y = barY;
+    const barYBase =
+      this.type === 'overlord'
+        ? 1.5
+        : this.type === 'golem'
+          ? 1.35
+          : this.type === 'brute'
+            ? 1.25
+            : this.type === 'catapult'
+              ? 1.2
+              : this.type === 'ghost'
+                ? 1.15
+                : 1.05;
+    this.barFrame.position.y = barYBase * s;
     this.barFrame.scale.setScalar(Math.max(0.85, s));
     this.barFrame.visible = false;
 
@@ -684,6 +835,41 @@ export class EnemyView {
         for (let i = 0; i < this.arms.length; i++) {
           this.arms[i].rotation.x = -1.15 + Math.sin(this.anim * gait + i) * 0.14;
         }
+        break;
+      }
+      case 'brute': {
+        this.legs[0] && (this.legs[0].rotation.x = stride * 0.5);
+        this.legs[1] && (this.legs[1].rotation.x = -stride * 0.5);
+        this.body.position.y = Math.abs(stride) * 0.04;
+        this.body.rotation.z = Math.sin(this.anim * 2) * 0.06;
+        for (let i = 0; i < this.arms.length; i++) {
+          this.arms[i].rotation.x = stride * 0.35 * (i === 0 ? 1 : -1);
+        }
+        break;
+      }
+      case 'wisp': {
+        this.body.position.y = 0.18 + Math.sin(this.anim * 3.4) * 0.09;
+        this.body.rotation.y = this.anim * 1.4;
+        for (let i = 0; i < this.wisps.length; i++) {
+          const w = this.wisps[i];
+          w.position.y = -0.2 + Math.sin(this.anim * 4 + i * 2.1) * 0.07;
+        }
+        break;
+      }
+      case 'golem': {
+        this.legs[0] && (this.legs[0].rotation.x = stride * 0.3);
+        this.legs[1] && (this.legs[1].rotation.x = -stride * 0.3);
+        this.body.rotation.z = Math.sin(this.anim * 1.2) * 0.09;
+        this.body.position.y = Math.abs(stride) * 0.03;
+        for (let i = 0; i < this.arms.length; i++) {
+          this.arms[i].rotation.x = stride * 0.18 * (i === 0 ? 1 : -1);
+        }
+        break;
+      }
+      case 'catapult': {
+        this.body.position.y = Math.abs(stride) * 0.03;
+        this.body.rotation.z = Math.sin(this.anim * 3) * 0.04;
+        if (this.arms[0]) this.arms[0].rotation.x = -0.9 + Math.sin(this.anim * 1.5) * 0.12;
         break;
       }
       default: {

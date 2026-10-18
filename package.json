@@ -11,6 +11,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "animejs": "^4.5.0",
+    "motion": "^14.3.0",
     "three": "^0.186.1"
   },
   "devDependencies": {

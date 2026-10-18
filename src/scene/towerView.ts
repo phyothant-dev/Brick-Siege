@@ -617,6 +617,236 @@ function buildSupport(tier: number): TowerModel {
   };
 }
 
+/** ACID RAIN: a bubbling vat that lobs globs of burning goop. */
+function buildAcid(tier: number): TowerModel {
+  const spec = TOWERS.acid;
+  const root = new THREE.Group();
+  const pulse: THREE.Object3D[] = [];
+  const pad = buildPad(spec, tier);
+  root.add(pad);
+
+  let y = PLATE_H;
+  for (let i = 0; i < (tier === 1 ? 1 : 2); i++) {
+    const col = mesh(brick(6, 6, false), i === 0 ? GREY : LEGO.darkGreen);
+    at(col, y);
+    col.receiveShadow = true;
+    root.add(col);
+    y += BRICK_H;
+  }
+
+  const vat = mesh(post(2.4, 2.2), LEGO.brightGreen, { opacity: 0.82, transparent: true });
+  at(vat, y);
+  root.add(vat);
+
+  const band = mesh(ring(2.7, 0.4), LEGO.darkGreen);
+  at(band, y + BRICK_H);
+  band.rotation.x = Math.PI / 2;
+  root.add(band);
+
+  const lid = mesh(roundBrick(4.6, BRICK_H), LEGO.flatGray);
+  at(lid, y + BRICK_H * 2.2);
+  root.add(lid);
+
+  const pivot = new THREE.Group();
+  pivot.position.y = y + BRICK_H * 2.6;
+  root.add(pivot);
+
+  const head = new THREE.Group();
+  head.position.y = BRICK_H * 0.4;
+  head.rotation.x = -0.6;
+  pivot.add(head);
+
+  const tube = mesh(cylinderZ(1.3, 3.2), DARK);
+  at(tube, 0, 0, 0.5);
+  head.add(tube);
+
+  const mouth = mesh(ring(1.6, 0.4), LEGO.brightGreen);
+  at(mouth, 0, 0, 2.1);
+  head.add(mouth);
+  pulse.push(mouth);
+
+  const glob = mesh(sphere(1.5), LEGO.brightGreen, {
+    opacity: 0.6,
+    transparent: true,
+    emissive: LEGO.brightGreen,
+  });
+  at(glob, 0, 0, 2.35);
+  head.add(glob);
+  pulse.push(glob);
+
+  const muzzle = new THREE.Object3D();
+  muzzle.position.set(0, 0, 2.5);
+  head.add(muzzle);
+
+  return { root, head: pivot, muzzle, headY: y + BRICK_H * 2.6, pulse };
+}
+
+/** RAIL GUN: a long charged barrel that skewers a whole line of enemies. */
+function buildRail(tier: number): TowerModel {
+  const spec = TOWERS.rail;
+  const root = new THREE.Group();
+  const pulse: THREE.Object3D[] = [];
+  const pad = buildPad(spec, tier);
+  root.add(pad);
+
+  let y = PLATE_H;
+  for (let i = 0; i < tier + 1; i++) {
+    const col = mesh(brick(3, 3, false), i % 2 ? LEGO.black : DARK);
+    at(col, y);
+    col.receiveShadow = true;
+    root.add(col);
+    y += BRICK_H;
+  }
+
+  const head = new THREE.Group();
+  head.position.y = y;
+
+  const breech = mesh(brick(4, 3, false), spec.accent);
+  at(breech, BRICK_H * 0.3);
+  head.add(breech);
+
+  const spine = mesh(brick(2, 8, false), LEGO.black);
+  spine.position.set(0, BRICK_H * 0.45, 2.4);
+  head.add(spine);
+
+  for (const side of [-1, 1]) {
+    const railBar = mesh(brick(1, 9, false), spec.accent);
+    railBar.position.set(side * 0.16, BRICK_H * 0.75, 2.9);
+    head.add(railBar);
+  }
+
+  const glow = mesh(sphere(1.4), LEGO.brightYellow, { emissive: LEGO.yellow });
+  at(glow, BRICK_H * 0.5, 0, -0.1);
+  head.add(glow);
+  pulse.push(glow);
+
+  const muzzleRing = mesh(ring(1.5, 0.4), LEGO.darkBluishGray);
+  muzzleRing.rotation.x = Math.PI / 2;
+  muzzleRing.position.set(0, BRICK_H * 0.6, 7.4);
+  head.add(muzzleRing);
+  pulse.push(muzzleRing);
+
+  if (tier >= 3) {
+    const crest = mesh(brick(6, 2, false), LEGO.yellow);
+    at(crest, BRICK_H * 1.2, 0, -0.05);
+    head.add(crest);
+  }
+
+  root.add(head);
+
+  const muzzle = new THREE.Object3D();
+  muzzle.position.set(0, BRICK_H * 0.6, 7.6);
+  head.add(muzzle);
+
+  return { root, head, muzzle, headY: y, pulse };
+}
+
+/** BUCKSHOT: a squat salvo gun that empties a fan of rounds at close range. */
+function buildBuckshot(tier: number): TowerModel {
+  const spec = TOWERS.buckshot;
+  const root = new THREE.Group();
+  const pulse: THREE.Object3D[] = [];
+  const pad = buildPad(spec, tier);
+  root.add(pad);
+
+  let y = PLATE_H;
+  const col = mesh(roundBrick(5, BRICK_H), GREY);
+  at(col, y);
+  col.receiveShadow = true;
+  root.add(col);
+  y += BRICK_H;
+
+  const head = new THREE.Group();
+  head.position.y = y;
+
+  const housing = mesh(brick(5, 4, false), spec.accent);
+  at(housing, BRICK_H * 0.4);
+  head.add(housing);
+
+  const barrels = tier >= 3 ? 4 : 3;
+  for (let i = 0; i < barrels; i++) {
+    const off = (i - (barrels - 1) / 2) * 0.9;
+    const tube = mesh(roundBrick(1.5, BRICK_H * 1.4), i % 2 ? LEGO.flatGray : LEGO.black);
+    tube.position.set(off, BRICK_H * 0.7, 1.4);
+    head.add(tube);
+  }
+
+  const mouth = mesh(ring(1.9, 0.4), LEGO.black);
+  mouth.rotation.x = Math.PI / 2;
+  mouth.position.set(0, BRICK_H * 0.7, 2.4);
+  head.add(mouth);
+  pulse.push(mouth);
+
+  const stock = mesh(brick(3, 3, false), LEGO.redBrown);
+  at(stock, BRICK_H * 0.4, 0, -1.7);
+  head.add(stock);
+
+  root.add(head);
+
+  const muzzle = new THREE.Object3D();
+  muzzle.position.set(0, BRICK_H * 0.7, 2.8);
+  head.add(muzzle);
+
+  return { root, head, muzzle, headY: y, pulse };
+}
+
+/** DEEP FREEZE: a crystal spire that locks a single target in place. */
+function buildGlacier(tier: number): TowerModel {
+  const spec = TOWERS.glacier;
+  const root = new THREE.Group();
+  const pulse: THREE.Object3D[] = [];
+  const pad = buildPad(spec, tier);
+  root.add(pad);
+
+  let y = PLATE_H;
+  for (let i = 0; i < (tier === 1 ? 1 : 2); i++) {
+    const col = mesh(brick(5, 5, false), i === 0 ? GREY : LEGO.white);
+    at(col, y);
+    col.receiveShadow = true;
+    root.add(col);
+    y += BRICK_H;
+  }
+
+  const head = new THREE.Group();
+  head.position.y = y;
+
+  const base = mesh(roundBrick(4, BRICK_H * 1.2), LEGO.transIce, { opacity: 0.8, transparent: true });
+  at(base, BRICK_H * 0.3);
+  head.add(base);
+
+  const spireH = 2.4 + tier * 0.6;
+  const spire = mesh(cone(2.2, spireH), LEGO.transIce, {
+    opacity: 0.72,
+    transparent: true,
+    emissive: LEGO.sandBlue,
+  });
+  at(spire, BRICK_H * 1.2);
+  head.add(spire);
+
+  const core = mesh(sphere(1.6), LEGO.transIce, {
+    opacity: 0.7,
+    transparent: true,
+    emissive: LEGO.sandBlue,
+  });
+  at(core, BRICK_H * 1.2 + 0.14);
+  head.add(core);
+  pulse.push(core);
+
+  const lens = mesh(ring(1.5, 0.45), LEGO.transLightBlue);
+  at(lens, BRICK_H * 1.4, 0, 0.6);
+  lens.rotation.x = Math.PI / 2;
+  head.add(lens);
+  pulse.push(lens);
+
+  root.add(head);
+
+  const muzzle = new THREE.Object3D();
+  muzzle.position.set(0, BRICK_H * 1.4, 0.8);
+  head.add(muzzle);
+
+  return { root, head, muzzle, headY: y, pulse };
+}
+
 const BUILDERS: Record<TowerId, (tier: number) => TowerModel> = {
   shooter: buildShooter,
   mortar: buildMortar,
@@ -626,6 +856,10 @@ const BUILDERS: Record<TowerId, (tier: number) => TowerModel> = {
   sniper: buildSniper,
   cluster: buildCluster,
   support: buildSupport,
+  acid: buildAcid,
+  rail: buildRail,
+  buckshot: buildBuckshot,
+  glacier: buildGlacier,
 };
 
 /**
@@ -677,6 +911,10 @@ const BAR_HEIGHT: Record<TowerId, number> = {
   sniper: 2.6,
   cluster: 1.8,
   support: 2.9,
+  acid: 2.7,
+  rail: 2.7,
+  buckshot: 2.1,
+  glacier: 3.0,
 };
 
 export function createTowerModel(type: TowerId, tier: number): TowerModel {

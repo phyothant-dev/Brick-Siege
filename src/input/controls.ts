@@ -28,6 +28,10 @@ const HOTKEYS: Record<string, TowerId> = {
   Digit6: 'sniper',
   Digit7: 'cluster',
   Digit8: 'support',
+  Digit9: 'acid',
+  Digit0: 'rail',
+  Minus: 'buckshot',
+  Equal: 'glacier',
 };
 
 /** Pointer, keyboard and touch handling for camera and grid interaction. */

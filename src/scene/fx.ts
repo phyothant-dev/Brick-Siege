@@ -29,6 +29,8 @@ interface EnemyShot {
   t: number;
   life: number;
   dir: THREE.Vector3;
+  /** Vertical hop for lobbed shots like the catapult's boulder. */
+  arc: number;
 }
 
 interface Shot {
@@ -326,15 +328,15 @@ export class Fx {
   enemyShot(
     from: THREE.Vector3,
     to: THREE.Vector3,
-    style: 'arrow' | 'bullet' | 'rocket',
+    style: 'arrow' | 'bullet' | 'boulder',
     color: number,
     life: number,
   ): void {
     const geo =
       style === 'arrow'
         ? new THREE.ConeGeometry(0.07, 0.6, 5)
-        : style === 'rocket'
-          ? new THREE.ConeGeometry(0.15, 0.7, 6)
+        : style === 'boulder'
+          ? new THREE.SphereGeometry(0.19, 7, 5)
           : new THREE.SphereGeometry(0.09, 6, 5);
 
     const mesh = new THREE.Mesh(
@@ -344,13 +346,21 @@ export class Fx {
     this.group.add(mesh);
 
     const dir = to.clone().sub(from);
+    const distance = dir.length();
     dir.normalize();
     mesh.position.copy(from);
     // Cones point +Y, so aim them down the flight path.
     mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
-    if (style === 'rocket') mesh.scale.setScalar(1.5);
 
-    this.enemyShots.push({ mesh, from: from.clone(), to: to.clone(), t: 0, life, dir });
+    this.enemyShots.push({
+      mesh,
+      from: from.clone(),
+      to: to.clone(),
+      t: 0,
+      life,
+      dir,
+      arc: style === 'boulder' ? Math.min(1.6, distance * 0.28) : 0,
+    });
     // Hard cap so a long wave cannot flood the scene.
     while (this.enemyShots.length > 48) {
       const old = this.enemyShots.shift();
@@ -476,6 +486,7 @@ export class Fx {
       s.t += dt;
       const k = Math.min(1, s.t / s.life);
       s.mesh.position.lerpVectors(s.from, s.to, k);
+      if (s.arc > 0) s.mesh.position.y += Math.sin(k * Math.PI) * s.arc;
       if (k >= 1) {
         s.mesh.geometry.dispose();
         (s.mesh.material as THREE.Material).dispose();

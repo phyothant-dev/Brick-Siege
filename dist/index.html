@@ -19,12 +19,12 @@
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Ubuntu+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="./assets/index-ZcjT9p79.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-U7w_r0QZ.css">
+    <script type="module" crossorigin src="./assets/index-BDkXZGY0.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-D_c9osj-.css">
   </head>
   <body>
     <div id="app">
-      <canvas id="game-canvas" style="opacity:0;visibility:hidden;"></canvas>
+      <canvas id="game-canvas"></canvas>
 
       <!-- ============ TOP STATUS BAR ============ -->
       <header id="top-bar" class="panel">
@@ -126,6 +126,30 @@
           <span class="build-btn__name">BEACON</span>
           <span class="build-btn__meta"><em>SUPPORT</em><b class="cost">70</b></span>
         </button>
+        <button class="build-btn" data-tower="acid">
+          <span class="build-btn__key">9</span>
+          <span class="build-btn__icon" data-icon="acid"></span>
+          <span class="build-btn__name">ACID RAIN</span>
+          <span class="build-btn__meta"><em>POISON</em><b class="cost">120</b></span>
+        </button>
+        <button class="build-btn" data-tower="rail">
+          <span class="build-btn__key">0</span>
+          <span class="build-btn__icon" data-icon="rail"></span>
+          <span class="build-btn__name">RAIL GUN</span>
+          <span class="build-btn__meta"><em>LIGHTNING</em><b class="cost">150</b></span>
+        </button>
+        <button class="build-btn" data-tower="buckshot">
+          <span class="build-btn__key">-</span>
+          <span class="build-btn__icon" data-icon="buckshot"></span>
+          <span class="build-btn__name">BUCKSHOT</span>
+          <span class="build-btn__meta"><em>PHYSICAL</em><b class="cost">90</b></span>
+        </button>
+        <button class="build-btn" data-tower="glacier">
+          <span class="build-btn__key">=</span>
+          <span class="build-btn__icon" data-icon="glacier"></span>
+          <span class="build-btn__name">DEEP FREEZE</span>
+          <span class="build-btn__meta"><em>ICE</em><b class="cost">105</b></span>
+        </button>
         <button class="build-btn build-btn--wave" id="btn-start-wave">
           <span class="build-btn__name" id="wave-btn-label">START WAVE 1</span>
           <span class="build-btn__meta"><em>BUILD PHASE</em><b id="wave-timer">20s</b></span>
@@ -137,7 +161,7 @@
            where the shop bar sits on small screens, so it is hidden wherever
            there is no keyboard (see the pointer:coarse rule in styles.css). -->
       <div id="hints" class="panel">
-        <span><kbd>1</kbd>-<kbd>8</kbd> build</span>
+        <span><kbd>1</kbd>-<kbd>0</kbd> build</span>
         <span><kbd>WASD</kbd> pan</span>
         <span><kbd>Scroll</kbd> zoom</span>
         <span><kbd>Space</kbd> wave</span>
