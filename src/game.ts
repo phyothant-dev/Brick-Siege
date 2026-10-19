@@ -534,6 +534,10 @@ export class Game {
   }
 
   sellSelected(): void {
+    // The attacker plays creatures, not towers: the fortifications belong to
+    // the defender, so selling them would both gut the defense and pay the
+    // attacker for it. UI hides the button; this guard covers the hotkey path.
+    if (this.side === 'attacker') return;
     const tower = this.selected;
     if (!tower) return;
     this.detachTower(tower);

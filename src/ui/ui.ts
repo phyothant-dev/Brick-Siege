@@ -663,14 +663,17 @@ export class Ui {
       this.combineBtn.disabled = true;
       this.combineBtn.textContent = 'COMBINE';
       this.combineBtn.classList.toggle('is-active', false);
+      // Towers are the defender's: the attacker can read them but never sell.
+      this.sellBtn.disabled = true;
     } else {
       const partner = this.game.state.findCombinePartner(tower);
       this.combineBtn.disabled = !partner;
       this.combineBtn.textContent =
         tower.tier >= MAX_TIER ? 'MAX TIER' : partner ? 'COMBINE' : 'NO PARTNER';
       this.combineBtn.classList.toggle('is-active', this.game.combining);
+      this.sellBtn.disabled = false;
+      this.sellBtn.textContent = `SELL +${Math.floor(tower.invested * SELL_REFUND)}`;
     }
-    this.sellBtn.textContent = `SELL +${Math.floor(tower.invested * SELL_REFUND)}`;
   }
 
   private fxHideRangeWhenIdle(): void {
