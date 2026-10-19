@@ -433,13 +433,15 @@ body {
 #shop-bar,
 #attack-bar {
   position: absolute;
-  bottom: 12px;
+  /* Lifted so the #pickbar-handle drawer pull fits underneath. */
+  bottom: 38px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   gap: var(--bar-gap);
   padding: var(--bar-pad-y) var(--bar-pad-x);
   z-index: 20;
+  transition: transform 0.18s ease;
   /* Without an explicit width the absolute + left:50% centring makes the bar
      shrink-to-fit to HALF the viewport, so the shop would wrap far too early.
      max-content lets it grow to its natural one-row width, then max-width and
@@ -461,6 +463,26 @@ body {
 #shop-bar {
   flex-wrap: wrap;
   justify-content: center;
+}
+
+/* ---- Pick-bar drawer handle ----
+   The bars overlay the canvas, so hiding one needs no resize: the handle
+   pill sits centered just below the bar and slides the bar off-screen. */
+#pickbar-handle {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  z-index: 20;
+  padding: 0 14px;
+  height: 24px;
+  line-height: 20px;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+}
+body.pickbar-hidden #shop-bar,
+body.pickbar-hidden #attack-bar {
+  transform: translateX(-50%) translateY(calc(100% + 40px));
 }
 
 /* ---- Pointer-capability switches ----
@@ -725,6 +747,28 @@ body {
   }
   #attack-bar .build-btn { width: auto; min-width: 0; }
   #attack-bar .attack-bar__row { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+
+/* ---- Pick-bar handle on small screens ----
+   Must sit AFTER the big mobile block above: that block pins the bars to
+   bottom:6px with transform:none, so both the lift and the collapsed
+   transform have to be re-asserted here to win the cascade. */
+@media (max-width: 1000px) {
+  #shop-bar,
+  #attack-bar {
+    bottom: 30px;
+  }
+  #pickbar-handle {
+    bottom: max(2px, env(safe-area-inset-bottom));
+    height: 20px;
+    line-height: 16px;
+    padding: 0 10px;
+    font-size: 0.55rem;
+  }
+  body.pickbar-hidden #shop-bar,
+  body.pickbar-hidden #attack-bar {
+    transform: translateY(calc(100% + 34px));
+  }
 }
 
 @media (min-width: 641px) and (max-width: 1000px) {

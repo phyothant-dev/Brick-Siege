@@ -59,6 +59,7 @@ export class Ui {
   private mapBlurb = $('map-blurb');
 
   private shopBar = $('shop-bar');
+  private pickbarHandle = $<HTMLButtonElement>('pickbar-handle');
   private buildButtons = new Map<TowerId, HTMLButtonElement>();
   private waveBtn = $<HTMLButtonElement>('btn-start-wave');
   private waveLabel = $('wave-btn-label');
@@ -198,12 +199,26 @@ export class Ui {
     }
   }
 
+  /** Show or hide the bottom pick bar (tower shop / attacker palette). */
+  private setPickbarVisible(visible: boolean): void {
+    document.body.classList.toggle('pickbar-hidden', !visible);
+    this.updatePickbarHandle();
+  }
+
+  private updatePickbarHandle(): void {
+    const hidden = document.body.classList.contains('pickbar-hidden');
+    const label = this.game.side === 'attacker' ? 'UNITS' : 'TOWERS';
+    this.pickbarHandle.innerHTML = hidden ? `&#9650; ${label}` : '&#9660;';
+    this.pickbarHandle.title = hidden ? `Show the ${label.toLowerCase()} bar (B)` : 'Hide the pick bar (B)';
+  }
+
   /** Swap the tower shop for the unit palette, and relabel the HUD. */
   refreshSideUi(): void {
     const attacking = this.game.side === 'attacker';
     this.shopBar.classList.toggle('is-hidden', attacking);
     $('attack-bar')?.classList.toggle('is-hidden', !attacking);
     document.body.dataset['side'] = this.game.side;
+    this.updatePickbarHandle();
 
     // Both sides get a visible clock: the defender counts to the next wave, the
     // attacker counts down its own assault.
@@ -313,6 +328,16 @@ export class Ui {
       btn.addEventListener('click', () => sfx('click'));
     }
 
+    // Pick-bar drawer pull: hide the shop/palette for a full-board view.
+    this.pickbarHandle.addEventListener('click', () => {
+      this.setPickbarVisible(document.body.classList.contains('pickbar-hidden'));
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'KeyB' && !e.repeat && this.game.phase !== 'menu') {
+        this.setPickbarVisible(document.body.classList.contains('pickbar-hidden'));
+      }
+    });
+
     // Motion tap feedback for anything pressable.
     document.addEventListener('pointerdown', (e) => {
       const el = (e.target as HTMLElement).closest<HTMLElement>(
@@ -394,6 +419,9 @@ export class Ui {
     on('placing:changed', () => {
       this.refreshShop();
       this.refreshInspector();
+      // Arming a pick (hotkey or palette click) while the bar is tucked away
+      // should reveal it, so the player always sees what they just armed.
+      if (this.game.placing || this.game.deploying) this.setPickbarVisible(true);
     });
     on('side:changed', () => {
       this.refreshSideUi();
