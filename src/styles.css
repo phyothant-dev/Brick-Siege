@@ -434,7 +434,7 @@ body {
 #attack-bar {
   position: absolute;
   /* Lifted so the #pickbar-handle drawer pull fits underneath. */
-  bottom: 38px;
+  bottom: 56px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -466,23 +466,63 @@ body {
 }
 
 /* ---- Pick-bar drawer handle ----
-   The bars overlay the canvas, so hiding one needs no resize: the handle
-   pill sits centered just below the bar and slides the bar off-screen. */
+   Deliberately loud: a labelled drawer pull so the tucked-away pick bar can
+   never be mistaken for a missing one. Red while the bar is open, pulsing
+   yellow with a bob once hidden, so the way back is always obvious. */
 #pickbar-handle {
   position: absolute;
   left: 50%;
   bottom: 8px;
   transform: translateX(-50%);
-  z-index: 20;
-  padding: 0 14px;
-  height: 24px;
-  line-height: 20px;
-  font-size: 0.62rem;
-  letter-spacing: 0.14em;
+  z-index: 21;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 20px;
+  height: 40px;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  background: var(--lego-red);
+  color: #fff;
+  border: 4px solid var(--lego-black);
+  box-shadow: 4px 4px 0 #000;
+  white-space: nowrap;
+}
+#pickbar-handle b {
+  font-size: 1.2em;
+  line-height: 1;
+}
+#pickbar-handle:hover {
+  transform: translate(-50%, -2px);
+  box-shadow: 6px 6px 0 #000;
+}
+#pickbar-handle:active {
+  transform: translate(-50%, 2px);
+  box-shadow: 1px 1px 0 #000;
+}
+body.pickbar-hidden #pickbar-handle {
+  background: var(--lego-yellow);
+  color: var(--lego-black);
+  /* Glow pulse rather than a positional bob: same eye-grab, but the button
+     never moves, so it stays an easy (and automation-stable) tap target. */
+  animation: pickbar-glow 1.5s ease-in-out infinite;
+}
+@keyframes pickbar-glow {
+  0%, 100% { box-shadow: 4px 4px 0 #000; }
+  50% { box-shadow: 4px 4px 0 #000, 0 0 24px 10px rgba(255, 207, 0, 0.55); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #shop-bar,
+  #attack-bar {
+    transition: none;
+  }
+  body.pickbar-hidden #pickbar-handle {
+    animation: none;
+  }
 }
 body.pickbar-hidden #shop-bar,
 body.pickbar-hidden #attack-bar {
-  transform: translateX(-50%) translateY(calc(100% + 40px));
+  transform: translateX(-50%) translateY(calc(100% + 60px));
 }
 
 /* ---- Pointer-capability switches ----
@@ -756,18 +796,18 @@ body.pickbar-hidden #attack-bar {
 @media (max-width: 1000px) {
   #shop-bar,
   #attack-bar {
-    bottom: 30px;
+    bottom: 46px;
   }
   #pickbar-handle {
     bottom: max(2px, env(safe-area-inset-bottom));
-    height: 20px;
-    line-height: 16px;
-    padding: 0 10px;
-    font-size: 0.55rem;
+    height: 34px;
+    padding: 0 14px;
+    gap: 6px;
+    font-size: 0.72rem;
   }
   body.pickbar-hidden #shop-bar,
   body.pickbar-hidden #attack-bar {
-    transform: translateY(calc(100% + 34px));
+    transform: translateY(calc(100% + 50px));
   }
 }
 

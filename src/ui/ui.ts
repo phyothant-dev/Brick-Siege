@@ -208,8 +208,12 @@ export class Ui {
   private updatePickbarHandle(): void {
     const hidden = document.body.classList.contains('pickbar-hidden');
     const label = this.game.side === 'attacker' ? 'UNITS' : 'TOWERS';
-    this.pickbarHandle.innerHTML = hidden ? `&#9650; ${label}` : '&#9660;';
-    this.pickbarHandle.title = hidden ? `Show the ${label.toLowerCase()} bar (B)` : 'Hide the pick bar (B)';
+    this.pickbarHandle.innerHTML = hidden
+      ? `<b>&#9650;</b> SHOW ${label}`
+      : `<b>&#9660;</b> HIDE ${label}`;
+    this.pickbarHandle.title = hidden
+      ? `Show the ${label.toLowerCase()} bar (B)`
+      : `Hide the ${label.toLowerCase()} bar (B)`;
   }
 
   /** Swap the tower shop for the unit palette, and relabel the HUD. */
