@@ -15,13 +15,26 @@ import {
   STUDS_PER_TILE,
   STUD_H,
   STUD_R,
+  currentMap,
   gxToWorld,
   gyToWorld,
   isPathCell,
 } from '../core/constants';
+import { MAP_ORDER } from '../core/maps';
 import { laneCount, pathPoints } from '../core/path';
 import { DEPLOY_ZONE } from '../core/sides';
-import { brick, cone, plate, ring as torusRing, roundBrick, slopeBrick } from './builder';
+import {
+  brick,
+  cone,
+  cylinderZ,
+  dome,
+  plate,
+  post,
+  ring as torusRing,
+  roundBrick,
+  slopeBrick,
+  sphere,
+} from './builder';
 import { THEMES } from './themes';
 import type { BoardTheme } from './themes';
 import { plastic } from './materials';
@@ -1325,6 +1338,1174 @@ export class Board {
       return g;
     };
 
+    /** Shared glowing-lava material, kept so the ambient layer can pulse it. */
+    const lavaMat = (): THREE.MeshStandardMaterial => {
+      const m = new THREE.MeshStandardMaterial({
+        color: theme.glow ?? 0xff5a1f,
+        emissive: new THREE.Color(theme.glow ?? 0xff5a1f),
+        emissiveIntensity: 1.9,
+        roughness: 0.42,
+      });
+      this.lavaMat = this.lavaMat ?? m;
+      return m;
+    };
+
+    // --------------------------------------------------- more forest dressing
+
+    /** Rock arch: two leaning stone piers under a leafy capstone. */
+    const rockArch = (): THREE.Group => {
+      const g = new THREE.Group();
+      const stone = plastic(theme.wood, { roughness: 0.94 });
+      const dark = plastic(LEGO.darkBluishGray, { roughness: 0.95 });
+      const moss = plastic(theme.foliageAlt, { roughness: 0.8 });
+      for (const side of [-1, 1]) {
+        for (let i = 0; i < 4; i++) {
+          const b = new THREE.Mesh(brick(2, 2, false), i % 2 ? stone : dark);
+          b.position.set(side * 2.4 * PITCH, BRICK_H * (i + 0.5), 0);
+          b.rotation.y = side * i * 0.06;
+          const k = 1 - i * 0.07;
+          b.scale.set(k, 1, k);
+          g.add(b);
+        }
+      }
+      for (const [dx, y] of [[-1.7, 4.1], [0, 4.4], [1.7, 4.1]] as [number, number][]) {
+        const b = new THREE.Mesh(brick(2, 3, false), stone);
+        b.position.set(dx * PITCH, BRICK_H * y, 0);
+        g.add(b);
+      }
+      const cap = new THREE.Mesh(plate(5, 3), moss);
+      cap.position.set(0, BRICK_H * 5.05, 0);
+      g.add(cap);
+      return g;
+    };
+
+    /** Log cabin: stacked walls, a stepped roof, a lit window and a chimney. */
+    const logCabin = (): THREE.Group => {
+      const g = new THREE.Group();
+      const log = plastic(theme.wood, { roughness: 0.82 });
+      const logAlt = plastic(LEGO.tan, { roughness: 0.8 });
+      const roof = plastic(LEGO.redBrown, { roughness: 0.72 });
+      const glow = plastic(0xffcf7a, { roughness: 0.4, emissive: 0xffb347, emissiveIntensity: 0.9 });
+      const body = new THREE.Mesh(brick(8, 6, false), log);
+      body.position.y = BRICK_H * 2;
+      g.add(body);
+      for (let i = 0; i < 4; i++) {
+        const ln = new THREE.Mesh(brick(8.3, 0.35, false), i % 2 ? logAlt : log);
+        ln.position.set(0, BRICK_H * (0.6 + i), PITCH * 3.05);
+        g.add(ln);
+      }
+      for (let i = 0; i < 3; i++) {
+        const r = new THREE.Mesh(brick(8 - i * 2.2, 7 - i * 2.2, false), i % 2 ? roof : logAlt);
+        r.position.y = BRICK_H * (4 + i);
+        g.add(r);
+      }
+      const door = new THREE.Mesh(brick(2, 1, false), plastic(0x3a2418, { roughness: 0.7 }));
+      door.position.set(0, BRICK_H * 1.1, PITCH * 3.1);
+      g.add(door);
+      const win = new THREE.Mesh(plate(2, 2), glow);
+      win.position.set(PITCH * 2.7, BRICK_H * 2.4, PITCH * 3.12);
+      win.rotation.x = Math.PI / 2;
+      g.add(win);
+      const chim = new THREE.Mesh(brick(1.6, 1.6, false), plastic(LEGO.darkBluishGray, { roughness: 0.9 }));
+      chim.position.set(PITCH * 2.4, BRICK_H * 5.3, -PITCH * 1.4);
+      g.add(chim);
+      return g;
+    };
+
+    /** Lookout tower: four braced legs, a railed deck and a green roof. */
+    const lookoutTower = (): THREE.Group => {
+      const g = new THREE.Group();
+      const wood = plastic(theme.wood, { roughness: 0.85 });
+      const deckMat = plastic(LEGO.redBrown, { roughness: 0.8 });
+      const roof = plastic(LEGO.green, { roughness: 0.7 });
+      const legH = 7 * PITCH;
+      for (const dx of [-1, 1]) {
+        for (const dz of [-1, 1]) {
+          const leg = new THREE.Mesh(post(0.55, 7), wood);
+          leg.position.set(dx * 2.1 * PITCH, 0, dz * 2.1 * PITCH);
+          leg.rotation.set(dz * 0.07, 0, -dx * 0.07);
+          g.add(leg);
+        }
+      }
+      const deck = new THREE.Mesh(brick(6, 6, false), deckMat);
+      deck.position.y = legH;
+      g.add(deck);
+      for (const [dx, dz] of [[-3, 0], [3, 0], [0, -3], [0, 3]] as [number, number][]) {
+        const rail = new THREE.Mesh(plate(6, 1), deckMat);
+        rail.position.set(dx * PITCH, legH + BRICK_H, dz * PITCH);
+        if (dx) rail.rotation.y = Math.PI / 2;
+        g.add(rail);
+      }
+      const cone1 = new THREE.Mesh(cone(4.6, 3), roof);
+      cone1.position.y = legH + BRICK_H;
+      g.add(cone1);
+      const flag = new THREE.Mesh(plate(2, 2), plastic(LEGO.brightYellow, { roughness: 0.6 }));
+      flag.position.set(PITCH * 1.2, legH + BRICK_H * 3.4, 0);
+      g.add(flag);
+      return g;
+    };
+
+    /** Fairy ring: a circle of little toadstools. */
+    const mushroomRing = (): THREE.Group => {
+      const g = new THREE.Group();
+      const stem = plastic(LEGO.tan, { roughness: 0.8 });
+      const cap = plastic(LEGO.red, { roughness: 0.6 });
+      const dot = plastic(LEGO.white, { roughness: 0.6 });
+      for (let i = 0; i < 7; i++) {
+        const a = (i / 7) * Math.PI * 2;
+        const r = (i % 2 ? 1.8 : 2.4) * PITCH;
+        const x = Math.cos(a) * r;
+        const z = Math.sin(a) * r;
+        const hh = (0.9 + (i % 3) * 0.5) * BRICK_H;
+        const st = new THREE.Mesh(roundBrick(1, hh), stem);
+        st.position.set(x, hh / 2, z);
+        g.add(st);
+        const cp = new THREE.Mesh(cone(1.7, 1.2), cap);
+        cp.position.set(x, hh, z);
+        cp.scale.y = 0.68;
+        g.add(cp);
+        const dt = new THREE.Mesh(roundBrick(0.5, PLATE_H), dot);
+        dt.position.set(x, hh + PITCH * 0.5, z);
+        g.add(dt);
+      }
+      return g;
+    };
+
+    // --------------------------------------------------- more desert dressing
+
+    /** Teepee: a hide cone with a pole, seams and a dark doorway. */
+    const tent = (): THREE.Group => {
+      const g = new THREE.Group();
+      const cloth = plastic(LEGO.tan, { roughness: 0.82 });
+      const cloth2 = plastic(LEGO.red, { roughness: 0.76 });
+      const cone1 = new THREE.Mesh(cone(5, 6.4), cloth);
+      g.add(cone1);
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2;
+        const seam = new THREE.Mesh(plate(0.5, 6), i % 2 ? cloth2 : cloth);
+        seam.position.set(Math.cos(a) * 2.3 * PITCH, 3 * PITCH, Math.sin(a) * 2.3 * PITCH);
+        seam.rotation.set(0.5 * Math.cos(a), -a, 0.5 * Math.sin(a));
+        g.add(seam);
+      }
+      const door = new THREE.Mesh(cone(1.6, 2.4), plastic(0x2a1c12, { roughness: 0.72 }));
+      door.position.set(0, 0, 2.7 * PITCH);
+      door.rotation.x = 0.5;
+      g.add(door);
+      const pole = new THREE.Mesh(post(0.3, 3), plastic(theme.wood, { roughness: 0.85 }));
+      pole.position.set(0, 6.2 * PITCH, 0);
+      g.add(pole);
+      return g;
+    };
+
+    /** Ruins: a broken colonnade on a cracked plinth. */
+    const ruins = (): THREE.Group => {
+      const g = new THREE.Group();
+      const stone = plastic(theme.horizonAlt, { roughness: 0.9 });
+      const lit = plastic(LEGO.tan, { roughness: 0.86 });
+      const base = new THREE.Mesh(plate(11, 9), stone);
+      g.add(base);
+      for (let i = 0; i < 4; i++) {
+        const h = i % 2 ? 2 : 4;
+        const c = new THREE.Mesh(post(0.95, h), i % 2 ? lit : stone);
+        c.position.set((i - 1.5) * 2.1 * PITCH, PLATE_H, (i % 2 ? 1 : -1) * 2 * PITCH);
+        g.add(c);
+      }
+      const lint = new THREE.Mesh(brick(8, 2, false), lit);
+      lint.position.set(0, PLATE_H + 4 * PITCH, -2 * PITCH);
+      g.add(lint);
+      const fallen = new THREE.Mesh(cylinderZ(0.95, 6), stone);
+      fallen.rotation.y = 0.5;
+      fallen.position.set(PITCH * 0.6, PITCH * 0.9, -2.4 * PITCH);
+      g.add(fallen);
+      const drum = new THREE.Mesh(roundBrick(2, 2 * PITCH), lit);
+      drum.position.set(-2.2 * PITCH, 0, -3 * PITCH);
+      g.add(drum);
+      return g;
+    };
+
+    /** Bleached skull: a bit of desert dread. */
+    const skull = (): THREE.Group => {
+      const g = new THREE.Group();
+      const bone = plastic(0xe8e2d0, { roughness: 0.72 });
+      const dark = plastic(0x2b2b30, { roughness: 0.5 });
+      const head = new THREE.Mesh(brick(3, 4, false), bone);
+      head.position.y = BRICK_H;
+      g.add(head);
+      const muzzle = new THREE.Mesh(brick(2, 2, false), bone);
+      muzzle.position.set(0, BRICK_H * 0.8, PITCH * 2.6);
+      g.add(muzzle);
+      for (const side of [-1, 1]) {
+        const horn = new THREE.Mesh(cone(0.7, 2.8), bone);
+        horn.position.set(side * 1.8 * PITCH, BRICK_H * 1.7, -PITCH * 0.4);
+        horn.rotation.set(-0.5, 0, side * 0.95);
+        g.add(horn);
+        const eye = new THREE.Mesh(brick(0.8, 0.8, false), dark);
+        eye.position.set(side * 0.8 * PITCH, BRICK_H * 1.5, PITCH * 1.7);
+        g.add(eye);
+      }
+      return g;
+    };
+
+    /** Well: a stone circle, a little water and a winding bar. */
+    const well = (): THREE.Group => {
+      const g = new THREE.Group();
+      const stone = plastic(theme.horizonAlt, { roughness: 0.92 });
+      const wood = plastic(theme.wood, { roughness: 0.85 });
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const s = new THREE.Mesh(brick(1.5, 1.5, false), stone);
+        s.position.set(Math.cos(a) * 2.1 * PITCH, 0, Math.sin(a) * 2.1 * PITCH);
+        s.rotation.y = a;
+        g.add(s);
+      }
+      const water = new THREE.Mesh(new THREE.CircleGeometry(PITCH * 1.9, 16), plastic(0x2f8fd0, { roughness: 0.15, metalness: 0.15 }));
+      water.rotation.x = -Math.PI / 2;
+      water.position.y = PITCH * 0.25;
+      g.add(water);
+      for (const side of [-1, 1]) {
+        const p = new THREE.Mesh(post(0.4, 3.4), wood);
+        p.position.set(side * 1.6 * PITCH, 0, 0);
+        g.add(p);
+      }
+      const axle = new THREE.Mesh(cylinderZ(0.35, 3.6), wood);
+      axle.rotation.y = Math.PI / 2;
+      axle.position.set(0, 3.4 * PITCH, 0);
+      g.add(axle);
+      const roof = new THREE.Mesh(cone(2.6, 1.8), plastic(LEGO.redBrown, { roughness: 0.8 }));
+      roof.position.set(0, 3.6 * PITCH, 0);
+      g.add(roof);
+      return g;
+    };
+
+    // --------------------------------------------------- more arctic dressing
+
+    /** Snowman: three snowballs, coal face and a scarf. */
+    const snowman = (): THREE.Group => {
+      const g = new THREE.Group();
+      const snow = plastic(LEGO.white, { roughness: 0.6 });
+      const coal = plastic(0x2b2b30, { roughness: 0.5 });
+      const scarf = plastic(LEGO.red, { roughness: 0.7 });
+      const carrot = plastic(LEGO.orange, { roughness: 0.6 });
+      const balls: [number, number][] = [[2.4, 0.55], [1.8, 1.55], [1.25, 2.4]];
+      for (const [r, y] of balls) {
+        const b = new THREE.Mesh(sphere(r), snow);
+        b.position.y = y * PITCH * 2.2;
+        b.scale.y = 0.92;
+        g.add(b);
+      }
+      const headY = 2.4 * PITCH * 2.2;
+      for (const side of [-1, 1]) {
+        const eye = new THREE.Mesh(roundBrick(0.4, PLATE_H), coal);
+        eye.position.set(side * 0.28 * PITCH, headY + 0.35 * PITCH, 1.1 * PITCH);
+        g.add(eye);
+      }
+      const nose = new THREE.Mesh(cone(0.4, 1.2), carrot);
+      nose.rotation.x = Math.PI / 2;
+      nose.position.set(0, headY + 0.15 * PITCH, 1.3 * PITCH);
+      g.add(nose);
+      const wrap = new THREE.Mesh(roundBrick(1.6, BRICK_H * 0.7), scarf);
+      wrap.position.y = 1.55 * PITCH * 2.2 + 1.1 * PITCH;
+      g.add(wrap);
+      const tail = new THREE.Mesh(brick(0.8, 2, false), scarf);
+      tail.position.set(0.5 * PITCH, 1.55 * PITCH * 2.2 + 0.7 * PITCH, 0.9 * PITCH);
+      tail.rotation.z = 0.4;
+      g.add(tail);
+      return g;
+    };
+
+    /** Ice cave: a domed shell with a dark mouth and hanging icicles. */
+    const iceCave = (): THREE.Group => {
+      const g = new THREE.Group();
+      const ice = plastic(LEGO.lightBluishGray, { roughness: 0.4 });
+      const glow = plastic(LEGO.transIce, { roughness: 0.3, emissive: LEGO.transIce, emissiveIntensity: 0.35 });
+      const shell = new THREE.Mesh(dome(6.5), ice);
+      shell.scale.set(1, 0.85, 1);
+      g.add(shell);
+      const mouth = new THREE.Mesh(dome(2.7), plastic(0x10202e, { roughness: 0.82 }));
+      mouth.scale.set(1, 0.95, 1);
+      mouth.position.set(0, 0.02, 3.4 * PITCH);
+      g.add(mouth);
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2 + 0.3;
+        const ic = new THREE.Mesh(cone(0.5, 1.5), glow);
+        ic.rotation.x = Math.PI;
+        ic.position.set(Math.cos(a) * 4.4 * PITCH, 1.3, Math.sin(a) * 4.4 * PITCH);
+        g.add(ic);
+      }
+      return g;
+    };
+
+    /** Woolly mammoth: shaggy body, curled tusks and a hanging trunk. */
+    const mammoth = (): THREE.Group => {
+      const g = new THREE.Group();
+      const fur = plastic(0x8a6a4a, { roughness: 0.88 });
+      const furDark = plastic(0x6b5137, { roughness: 0.88 });
+      const tusk = plastic(0xe8e2d0, { roughness: 0.5 });
+      const dark = plastic(0x2b2b30, { roughness: 0.5 });
+      const body = new THREE.Mesh(brick(8, 5, false), fur);
+      body.position.y = BRICK_H * 2.6;
+      g.add(body);
+      const hump = new THREE.Mesh(cone(3, 3), furDark);
+      hump.position.set(-PITCH * 1.2, BRICK_H * 3.4, 0);
+      hump.scale.z = 1.5;
+      g.add(hump);
+      const head = new THREE.Mesh(brick(4, 4, false), furDark);
+      head.position.set(PITCH * 4, BRICK_H * 2.8, 0);
+      g.add(head);
+      const trunk = new THREE.Mesh(cone(0.9, 3.6), fur);
+      trunk.rotation.x = Math.PI;
+      trunk.position.set(PITCH * 5.4, BRICK_H * 2.2, 0);
+      g.add(trunk);
+      for (const side of [-1, 1]) {
+        const tuskMesh = new THREE.Mesh(cone(0.5, 3), tusk);
+        tuskMesh.position.set(PITCH * 5.3, BRICK_H * 1.6, side * 1.1 * PITCH);
+        tuskMesh.rotation.set(-0.7, 0, side * 0.9);
+        g.add(tuskMesh);
+        const ear = new THREE.Mesh(plate(3, 3), furDark);
+        ear.position.set(PITCH * 3.2, BRICK_H * 3.2, side * 2.1 * PITCH);
+        ear.rotation.y = side * 1.2;
+        g.add(ear);
+        const eye = new THREE.Mesh(roundBrick(0.4, PLATE_H), dark);
+        eye.position.set(PITCH * 5.2, BRICK_H * 3.4, side * 1.1 * PITCH);
+        g.add(eye);
+      }
+      for (const dx of [2.6, -2.6]) {
+        for (const dz of [1.5, -1.5]) {
+          const leg = new THREE.Mesh(brick(2, 2, false), fur);
+          leg.position.set(dx * PITCH, BRICK_H * 1, dz * PITCH);
+          g.add(leg);
+        }
+      }
+      return g;
+    };
+
+    /** Research hut: a bright cabin with an antenna and a flag. */
+    const researchHut = (): THREE.Group => {
+      const g = new THREE.Group();
+      const wall = plastic(LEGO.orange, { roughness: 0.7 });
+      const roof = plastic(LEGO.darkBluishGray, { roughness: 0.7 });
+      const trim = plastic(LEGO.white, { roughness: 0.6 });
+      const glow = plastic(0xbfe6ff, { roughness: 0.4, emissive: 0x7fc8ef, emissiveIntensity: 0.9 });
+      const body = new THREE.Mesh(brick(7, 5, false), wall);
+      body.position.y = BRICK_H * 1.8;
+      g.add(body);
+      const band = new THREE.Mesh(brick(7.3, 5.3, false), trim);
+      band.position.y = BRICK_H * 3.3;
+      band.scale.y = 0.25;
+      g.add(band);
+      const r = new THREE.Mesh(brick(7.6, 5.6, false), roof);
+      r.position.y = BRICK_H * 3.7;
+      r.scale.y = 0.5;
+      g.add(r);
+      const win = new THREE.Mesh(plate(2, 2), glow);
+      win.position.set(0, BRICK_H * 2.2, PITCH * 2.6);
+      win.rotation.x = Math.PI / 2;
+      g.add(win);
+      const mast = new THREE.Mesh(post(0.25, 4), trim);
+      mast.position.set(PITCH * 2.4, BRICK_H * 4, -PITCH * 1.6);
+      g.add(mast);
+      const flag = new THREE.Mesh(plate(2, 1.5), plastic(LEGO.brightRed, { roughness: 0.6 }));
+      flag.position.set(PITCH * 3.4, BRICK_H * 4 + 3.4 * PITCH, -PITCH * 1.6);
+      g.add(flag);
+      return g;
+    };
+
+    // --------------------------------------------------- more volcano dressing
+
+    /** Lava river: a winding molten channel through cracked banks. */
+    const lavaRiver = (): THREE.Group => {
+      const g = new THREE.Group();
+      const lava = lavaMat();
+      const rock = plastic(theme.wood, { roughness: 0.96 });
+      const dark = plastic(0x1a1512, { roughness: 0.7 });
+      const path: [number, number, number][] = [
+        [-4, -2, 0.4], [-2, -1, -0.3], [0, 0.5, 0.5], [2, 1.2, -0.2], [4, 2, 0.6],
+      ];
+      for (const [x, z, rot] of path) {
+        const seg = new THREE.Mesh(brick(6, 4, false), lava);
+        seg.position.set(x * PITCH, PITCH * 0.16, z * PITCH);
+        seg.rotation.y = rot;
+        g.add(seg);
+        const bank = new THREE.Mesh(brick(7, 5.5, false), rock);
+        bank.position.set(x * PITCH, 0, z * PITCH);
+        bank.rotation.y = rot;
+        bank.scale.set(1, 0.22, 1);
+        g.add(bank);
+      }
+      for (let i = 0; i < 6; i++) {
+        const a = i;
+        const c = new THREE.Mesh(brick(1.4, 1.4, false), dark);
+        c.position.set(Math.cos(a * 2) * 4.4 * PITCH, 0, Math.sin(a * 2) * 3.4 * PITCH);
+        c.rotation.y = a;
+        g.add(c);
+      }
+      return g;
+    };
+
+    /** Smoke vent: a cracked chimney with a rising plume and a hot throat. */
+    const smokeVent = (): THREE.Group => {
+      const g = new THREE.Group();
+      const rock = plastic(theme.wood, { roughness: 0.95 });
+      const dark = plastic(0x1a1512, { roughness: 0.8 });
+      const lava = lavaMat();
+      const plume = plastic(0x6b6560, { roughness: 1, transparent: true, opacity: 0.5 });
+      const base = new THREE.Mesh(cone(4.5, 3), rock);
+      g.add(base);
+      const chimney = new THREE.Mesh(cylinderZ(1.2, 3), dark);
+      chimney.rotation.x = Math.PI / 2;
+      chimney.position.set(0, 2.4 * PITCH, 0);
+      g.add(chimney);
+      const throat = new THREE.Mesh(roundBrick(2, BRICK_H), lava);
+      throat.position.y = 2.4 * PITCH;
+      g.add(throat);
+      for (let i = 0; i < 3; i++) {
+        const puff = new THREE.Mesh(sphere(2 + i * 0.6), plume);
+        puff.position.set(i * 0.4 * PITCH, (4 + i * 2.2) * PITCH, 0);
+        puff.scale.set(1, 0.8, 1);
+        g.add(puff);
+      }
+      return g;
+    };
+
+    /** Magma boulder: a cracked rock leaking glowing seams. */
+    const magmaBoulder = (): THREE.Group => {
+      const g = new THREE.Group();
+      const rock = plastic(theme.wood, { roughness: 0.96 });
+      const dark = plastic(0x1a1512, { roughness: 0.86 });
+      const lava = lavaMat();
+      const big = new THREE.Mesh(slopeBrick(8, 6), dark);
+      big.position.y = PITCH * 0.4;
+      g.add(big);
+      const chunk = new THREE.Mesh(brick(4, 4, false), rock);
+      chunk.position.set(PITCH * 1.4, PITCH * 0.6, PITCH * 1.2);
+      chunk.rotation.y = 0.6;
+      g.add(chunk);
+      for (let i = 0; i < 4; i++) {
+        const vein = new THREE.Mesh(brick(0.6, 4 + i, false), lava);
+        vein.position.set((i - 1.5) * 0.7 * PITCH, PITCH * (0.6 + i * 0.15), PITCH * 2.2);
+        vein.rotation.set(0.4, i * 0.4, 0.1 * i);
+        g.add(vein);
+      }
+      return g;
+    };
+
+    /** Charred pines: a stand of blackened trunks with ember tips. */
+    const charredPines = (): THREE.Group => {
+      const g = new THREE.Group();
+      const bark = plastic(0x241d19, { roughness: 0.95 });
+      const ember = plastic(theme.glow ?? 0xff5a1f, { roughness: 0.5, emissive: theme.glow ?? 0xff5a1f, emissiveIntensity: 1.4 });
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * Math.PI * 2 + 0.4;
+        const x = Math.cos(a) * 2.2 * PITCH;
+        const z = Math.sin(a) * 2.2 * PITCH;
+        const h = 4 + (i % 2) * 2;
+        const trunk = new THREE.Mesh(post(0.6, h), bark);
+        trunk.position.set(x, 0, z);
+        trunk.rotation.set(((i % 3) - 1) * 0.06, 0, ((i % 2) - 0.5) * 0.08);
+        g.add(trunk);
+        const tip = new THREE.Mesh(roundBrick(0.9, BRICK_H), ember);
+        tip.position.set(x, h * PITCH, z);
+        g.add(tip);
+      }
+      return g;
+    };
+
+    /** Hay bales: round straw bales on their sides, one stacked on top. */
+    const hayBales = (): THREE.Group => {
+      const g = new THREE.Group();
+      const hay = plastic(0xd9b36a, { roughness: 0.88 });
+      const straw = plastic(0xc29d55, { roughness: 0.9 });
+      const R = 2 * PITCH;
+      for (const [x, z, rot] of [
+        [-1.6, 0.6, 0.2],
+        [1.4, -0.8, 1.3],
+        [0.2, 1.8, 2.4],
+      ] as [number, number, number][]) {
+        const bale = new THREE.Mesh(cylinderZ(2, 2.8), hay);
+        bale.position.set(x, R, z);
+        bale.rotation.y = rot;
+        g.add(bale);
+      }
+      const top = new THREE.Mesh(cylinderZ(1.7, 2.4), straw);
+      top.position.set(-1.6, R * 2.85, 0.6);
+      top.rotation.y = 1.7;
+      g.add(top);
+      return g;
+    };
+
+    /** Wayside shrine: stone plinth, tiered roof and a small offering niche. */
+    const shrine = (): THREE.Group => {
+      const g = new THREE.Group();
+      const stone = plastic(0x9a958c, { roughness: 0.85 });
+      const stoneDark = plastic(0x6e6a63, { roughness: 0.9 });
+      const roofMat = plastic(theme.foliageAlt, { roughness: 0.7 });
+      const gold = plastic(LEGO.brightYellow, { roughness: 0.5 });
+      const plinth = new THREE.Mesh(brick(4, 4, false), stone);
+      plinth.position.y = BRICK_H / 2;
+      g.add(plinth);
+      const body = new THREE.Mesh(brick(3, 3, false), stoneDark);
+      body.position.y = BRICK_H * 1.5;
+      g.add(body);
+      const niche = new THREE.Mesh(roundBrick(1.2, BRICK_H), plastic(LEGO.tan, { roughness: 0.7 }));
+      niche.position.set(0, BRICK_H * 1.4, 1.15 * PITCH);
+      g.add(niche);
+      const roof1 = new THREE.Mesh(slopeBrick(5, 5), roofMat);
+      roof1.position.y = BRICK_H * 2.5;
+      g.add(roof1);
+      const roof2 = new THREE.Mesh(cone(1.4, 2.2), roofMat);
+      roof2.position.y = BRICK_H * 3.2;
+      g.add(roof2);
+      const tip = new THREE.Mesh(roundBrick(0.6, BRICK_H * 0.6), gold);
+      tip.position.y = BRICK_H * 5.4;
+      g.add(tip);
+      return g;
+    };
+
+    /** Flag pole: weighted base, tall mast and a hanging plate flag. */
+    const flagPole = (): THREE.Group => {
+      const g = new THREE.Group();
+      const mast = plastic(0x6e6a63, { roughness: 0.75 });
+      const cloth = plastic(LEGO.brightRed, { roughness: 0.6 });
+      const base = new THREE.Mesh(brick(3, 3, false), mast);
+      base.position.y = BRICK_H / 2;
+      g.add(base);
+      const pole = new THREE.Mesh(post(0.5, 9), mast);
+      g.add(pole);
+      const flag = new THREE.Mesh(plate(3.4, 2.2), cloth);
+      flag.rotation.x = Math.PI / 2;
+      flag.position.set(1.85 * PITCH, 9 * PITCH - 1.2 * PITCH, 0);
+      g.add(flag);
+      return g;
+    };
+
+    /** Supply crates: stacked crates with a barrel tipped beside them. */
+    const supplyCrates = (): THREE.Group => {
+      const g = new THREE.Group();
+      const wood = plastic(0x8a6a3a, { roughness: 0.85 });
+      const lid = plastic(0x5c452a, { roughness: 0.85 });
+      const barrelMat = plastic(0x6b7a5a, { roughness: 0.7 });
+      for (const [x, z, rot] of [
+        [-1.1, 0.5, 0],
+        [0.9, -0.7, 0.4],
+        [-0.2, 1.5, 1.1],
+      ] as [number, number, number][]) {
+        const box = new THREE.Mesh(brick(3, 3, false), wood);
+        box.position.set(x, BRICK_H / 2, z);
+        box.rotation.y = rot;
+        g.add(box);
+        const cap = new THREE.Mesh(plate(3, 3), lid);
+        cap.position.set(x, BRICK_H + PLATE_H / 2, z);
+        cap.rotation.y = rot;
+        g.add(cap);
+      }
+      const stack = new THREE.Mesh(brick(3, 3, false), wood);
+      stack.position.set(-1.1, BRICK_H * 1.5, 0.5);
+      stack.rotation.y = 0.5;
+      g.add(stack);
+      const stackCap = new THREE.Mesh(plate(3, 3), lid);
+      stackCap.position.set(-1.1, BRICK_H * 2 + PLATE_H / 2, 0.5);
+      stackCap.rotation.y = 0.5;
+      g.add(stackCap);
+      const barrel = new THREE.Mesh(cylinderZ(1.4, 3), barrelMat);
+      barrel.rotation.x = Math.PI / 2;
+      barrel.position.set(1.9, 1.4 * PITCH, 1.2);
+      g.add(barrel);
+      return g;
+    };
+
+    /** Clay pots: a cluster of terracotta jars with one tipped over. */
+    const pottery = (): THREE.Group => {
+      const g = new THREE.Group();
+      const clay = plastic(0xb06a3c, { roughness: 0.82 });
+      const clayDark = plastic(0x8a4f2c, { roughness: 0.85 });
+      for (const [x, z, h, mat] of [
+        [-1.2, 0.4, 2.2, clay],
+        [0.9, -0.6, 1.8, clayDark],
+        [0.2, 1.3, 1.5, clay],
+      ] as [number, number, number, THREE.Material][]) {
+        const pot = new THREE.Mesh(roundBrick(2, h * PITCH), mat);
+        pot.position.set(x, 0, z);
+        g.add(pot);
+        const rim = new THREE.Mesh(torusRing(0.9, 0.28), clayDark);
+        rim.rotation.x = Math.PI / 2;
+        rim.position.set(x, h * PITCH, z);
+        g.add(rim);
+      }
+      const tipped = new THREE.Mesh(roundBrick(1.8, 1.6 * PITCH), clay);
+      tipped.rotation.z = Math.PI / 2;
+      tipped.position.set(1.8, 0.9 * PITCH, 1.4);
+      g.add(tipped);
+      return g;
+    };
+
+    /** Bone pile: bleached skull, a ribcage arc and scattered scraps. */
+    const bonePile = (): THREE.Group => {
+      const g = new THREE.Group();
+      const bone = plastic(0xe8e2d4, { roughness: 0.8 });
+      const boneDark = plastic(0xc9c0ae, { roughness: 0.85 });
+      const skull = new THREE.Mesh(sphere(1.5), bone);
+      skull.scale.set(1, 0.85, 1.1);
+      skull.position.y = BRICK_H * 0.9;
+      g.add(skull);
+      const jaw = new THREE.Mesh(brick(1.6, 1, false), boneDark);
+      jaw.position.set(0, BRICK_H * 0.4, 1.2 * PITCH);
+      g.add(jaw);
+      for (let i = 0; i < 5; i++) {
+        const rib = new THREE.Mesh(torusRing(1.6 + i * 0.1, 0.3), bone);
+        rib.position.set(0, BRICK_H * 0.5, -1.4 * PITCH - i * 0.8 * PITCH);
+        rib.rotation.x = Math.PI / 2;
+        rib.rotation.z = i % 2 ? 0.2 : -0.2;
+        g.add(rib);
+      }
+      for (const [x, z] of [
+        [1.6, -0.8],
+        [-1.5, 0.9],
+        [0.9, 1.6],
+      ] as [number, number][]) {
+        const scrap = new THREE.Mesh(brick(1, 2.2, false), boneDark);
+        scrap.position.set(x, BRICK_H * 0.3, z);
+        scrap.rotation.y = x + z;
+        g.add(scrap);
+      }
+      return g;
+    };
+
+    // -------------------------------------------------------------- fauna
+    // Little critters. Smaller than landmarks so they read as animals.
+
+    /** Deer: slim body, raised neck, antlers and four legs. */
+    const deer = (): THREE.Group => {
+      const g = new THREE.Group();
+      const fur = plastic(theme.wood, { roughness: 0.76 });
+      const belly = plastic(LEGO.tan, { roughness: 0.72 });
+      const dark = plastic(0x2b2b30, { roughness: 0.5 });
+      const body = new THREE.Mesh(brick(6, 3, false), fur);
+      body.position.y = BRICK_H * 2.1;
+      g.add(body);
+      const neck = new THREE.Mesh(brick(2, 2, false), fur);
+      neck.position.set(PITCH * 2.6, BRICK_H * 2.9, 0);
+      neck.rotation.z = -0.5;
+      g.add(neck);
+      const head = new THREE.Mesh(brick(2, 3, false), belly);
+      head.position.set(PITCH * 3.8, BRICK_H * 3.5, 0);
+      g.add(head);
+      for (const side of [-1, 1]) {
+        const snoutEye = new THREE.Mesh(brick(0.5, 0.5, false), dark);
+        snoutEye.position.set(PITCH * 4.5, BRICK_H * 3.7, side * 0.9 * PITCH);
+        g.add(snoutEye);
+        for (let i = 0; i < 2; i++) {
+          const antler = new THREE.Mesh(brick(0.5, 0.5, false), belly);
+          antler.position.set(PITCH * (3.6 + i * 0.7), BRICK_H * (4 + i * 0.7), side * 0.9 * PITCH);
+          antler.rotation.z = -0.7;
+          g.add(antler);
+        }
+      }
+      const tail = new THREE.Mesh(brick(1, 1, false), belly);
+      tail.position.set(-PITCH * 3.4, BRICK_H * 2.4, 0);
+      g.add(tail);
+      for (const dx of [1.9, -1.9]) {
+        for (const dz of [0.9, -0.9]) {
+          const leg = new THREE.Mesh(brick(1, 1, false), fur);
+          leg.position.set(dx * PITCH, BRICK_H * 0.9, dz * PITCH);
+          g.add(leg);
+        }
+      }
+      return g;
+    };
+
+    /** Rabbit: a rounded body with tall ears and a cotton tail. */
+    const rabbit = (): THREE.Group => {
+      const g = new THREE.Group();
+      const fur = plastic(0xb9b4ad, { roughness: 0.78 });
+      const light = plastic(LEGO.white, { roughness: 0.7 });
+      const dark = plastic(0x2b2b30, { roughness: 0.5 });
+      const body = new THREE.Mesh(sphere(2.3), fur);
+      body.scale.set(1.1, 1, 1.4);
+      body.position.y = BRICK_H * 1.4;
+      g.add(body);
+      const head = new THREE.Mesh(sphere(1.5), fur);
+      head.position.set(0, BRICK_H * 2.4, 1.6 * PITCH);
+      g.add(head);
+      for (const side of [-1, 1]) {
+        const ear = new THREE.Mesh(brick(0.7, 1.4, false), fur);
+        ear.position.set(side * 0.7 * PITCH, BRICK_H * 3.4, 1.5 * PITCH);
+        g.add(ear);
+        const eye = new THREE.Mesh(roundBrick(0.4, PLATE_H), dark);
+        eye.position.set(side * 0.6 * PITCH, BRICK_H * 2.5, 2.5 * PITCH);
+        g.add(eye);
+      }
+      const tail = new THREE.Mesh(sphere(0.9), light);
+      tail.position.set(0, BRICK_H * 1.5, -2.1 * PITCH);
+      g.add(tail);
+      return g;
+    };
+
+    /** Fox: sleek orange body, pointy face and a bushy white-tipped tail. */
+    const fox = (): THREE.Group => {
+      const g = new THREE.Group();
+      const fur = plastic(LEGO.orange, { roughness: 0.72 });
+      const light = plastic(LEGO.white, { roughness: 0.7 });
+      const dark = plastic(0x2b2b30, { roughness: 0.5 });
+      const body = new THREE.Mesh(brick(5, 3, false), fur);
+      body.position.y = BRICK_H * 1.5;
+      g.add(body);
+      const head = new THREE.Mesh(cone(1.6, 2.4), fur);
+      head.rotation.x = Math.PI / 2;
+      head.position.set(0, BRICK_H * 1.8, 2.6 * PITCH);
+      g.add(head);
+      for (const side of [-1, 1]) {
+        const ear = new THREE.Mesh(cone(0.7, 1.4), fur);
+        ear.position.set(side * 0.8 * PITCH, BRICK_H * 2.5, 2 * PITCH);
+        g.add(ear);
+        const eye = new THREE.Mesh(roundBrick(0.4, PLATE_H), dark);
+        eye.position.set(side * 0.7 * PITCH, BRICK_H * 2, 3.2 * PITCH);
+        g.add(eye);
+      }
+      const tail = new THREE.Mesh(cone(1.3, 3.4), fur);
+      tail.rotation.x = -Math.PI / 2;
+      tail.position.set(0, BRICK_H * 1.7, -2.6 * PITCH);
+      g.add(tail);
+      const tip = new THREE.Mesh(sphere(0.8), light);
+      tip.position.set(0, BRICK_H * 1.7, -4.2 * PITCH);
+      g.add(tip);
+      for (const dx of [1.5, -1.5]) {
+        for (const dz of [0.8, -0.8]) {
+          const leg = new THREE.Mesh(brick(0.9, 0.9, false), dark);
+          leg.position.set(dx * PITCH, BRICK_H * 0.7, dz * PITCH);
+          g.add(leg);
+        }
+      }
+      return g;
+    };
+
+    /** Owl: perched on a stump post, with big eyes and folded wings. */
+    const owl = (): THREE.Group => {
+      const g = new THREE.Group();
+      const bark = plastic(theme.wood, { roughness: 0.88 });
+      const body = plastic(0x7a5c3a, { roughness: 0.8 });
+      const face = plastic(0xd8c7a6, { roughness: 0.75 });
+      const eyeMat = plastic(LEGO.brightYellow, { roughness: 0.4, emissive: LEGO.yellow, emissiveIntensity: 0.5 });
+      const beak = plastic(LEGO.orange, { roughness: 0.6 });
+      const perch = new THREE.Mesh(post(0.6, 2.4), bark);
+      g.add(perch);
+      const chest = new THREE.Mesh(dome(2.2), body);
+      chest.position.y = 2.4 * PITCH;
+      g.add(chest);
+      const disc = new THREE.Mesh(roundBrick(2, PLATE_H), face);
+      disc.position.set(0, 2.4 * PITCH + 1.4 * PITCH, 0.6 * PITCH);
+      disc.rotation.x = Math.PI / 2;
+      g.add(disc);
+      for (const side of [-1, 1]) {
+        const eye = new THREE.Mesh(roundBrick(0.7, PLATE_H * 1.4), eyeMat);
+        eye.position.set(side * 0.7 * PITCH, 2.4 * PITCH + 1.6 * PITCH, 1 * PITCH);
+        g.add(eye);
+        const wing = new THREE.Mesh(plate(1.4, 3), body);
+        wing.position.set(side * 1.8 * PITCH, 2.4 * PITCH + 0.6 * PITCH, 0);
+        wing.rotation.y = side * 0.3;
+        g.add(wing);
+      }
+      const nose = new THREE.Mesh(cone(0.4, 0.9), beak);
+      nose.rotation.x = Math.PI / 2;
+      nose.position.set(0, 2.4 * PITCH + 1.4 * PITCH, 1.3 * PITCH);
+      g.add(nose);
+      return g;
+    };
+
+    /** Camel: humped body, long neck and a blunt muzzle. */
+    const camel = (): THREE.Group => {
+      const g = new THREE.Group();
+      const hide = plastic(LEGO.tan, { roughness: 0.8 });
+      const hideDark = plastic(0xc7a86a, { roughness: 0.78 });
+      const dark = plastic(0x2b2b30, { roughness: 0.5 });
+      const body = new THREE.Mesh(brick(7, 4, false), hide);
+      body.position.y = BRICK_H * 2.6;
+      g.add(body);
+      for (const dx of [1.4, -1.4]) {
+        const hump = new THREE.Mesh(dome(2.4), hideDark);
+        hump.position.set(dx * PITCH, BRICK_H * 3.4, 0);
+        g.add(hump);
+      }
+      const neck = new THREE.Mesh(brick(2, 2, false), hide);
+      neck.position.set(PITCH * 3.4, BRICK_H * 3.4, 0);
+      neck.rotation.z = -0.35;
+      g.add(neck);
+      const head = new THREE.Mesh(brick(2, 3, false), hideDark);
+      head.position.set(PITCH * 4.4, BRICK_H * 4.2, 0);
+      g.add(head);
+      const muzzle = new THREE.Mesh(brick(1, 1.4, false), hide);
+      muzzle.position.set(PITCH * 5.3, BRICK_H * 4, 0);
+      g.add(muzzle);
+      for (const side of [-1, 1]) {
+        const eye = new THREE.Mesh(roundBrick(0.4, PLATE_H), dark);
+        eye.position.set(PITCH * 4.8, BRICK_H * 4.5, side * 0.9 * PITCH);
+        g.add(eye);
+        const ear = new THREE.Mesh(roundBrick(0.5, PLATE_H), hide);
+        ear.position.set(PITCH * 4.2, BRICK_H * 4.7, side * 0.9 * PITCH);
+        g.add(ear);
+      }
+      for (const dx of [2.4, -2.4]) {
+        for (const dz of [1.1, -1.1]) {
+          const leg = new THREE.Mesh(brick(1.1, 1.1, false), hide);
+          leg.position.set(dx * PITCH, BRICK_H * 1.1, dz * PITCH);
+          g.add(leg);
+        }
+      }
+      const tail = new THREE.Mesh(brick(0.7, 1.4, false), hideDark);
+      tail.position.set(-PITCH * 3.7, BRICK_H * 2.2, 0);
+      g.add(tail);
+      return g;
+    };
+
+    /** Scorpion: segmented body, curved sting and two pincers. */
+    const scorpion = (): THREE.Group => {
+      const g = new THREE.Group();
+      const shell = plastic(0x3a2a1e, { roughness: 0.55 });
+      const claw = plastic(LEGO.orange, { roughness: 0.6 });
+      const glow = plastic(theme.glow ?? 0xffbf4d, { roughness: 0.5, emissive: theme.glow ?? 0xffbf4d, emissiveIntensity: 0.6 });
+      const body = new THREE.Mesh(roundBrick(2.4, BRICK_H * 0.9), shell);
+      body.position.y = BRICK_H * 0.7;
+      g.add(body);
+      const head = new THREE.Mesh(roundBrick(1.6, BRICK_H * 0.8), shell);
+      head.position.set(0, BRICK_H * 0.65, 1.6 * PITCH);
+      g.add(head);
+      let px = 0;
+      let pz = -1.4 * PITCH;
+      for (let i = 0; i < 4; i++) {
+        const seg = new THREE.Mesh(roundBrick(1.4 - i * 0.18, BRICK_H * 0.7), shell);
+        pz -= 0.7 * PITCH;
+        px += 0.1 * PITCH;
+        const y = BRICK_H * (0.7 + i * 0.35);
+        seg.position.set(px, y, pz);
+        g.add(seg);
+      }
+      const sting = new THREE.Mesh(cone(0.5, 1.4), glow);
+      sting.rotation.x = Math.PI;
+      sting.position.set(px, BRICK_H * 0.7 + 4 * 0.35 * BRICK_H + 0.4 * PITCH, pz);
+      g.add(sting);
+      for (const side of [-1, 1]) {
+        const arm = new THREE.Mesh(brick(1, 2.4, false), shell);
+        arm.position.set(side * 1.2 * PITCH, BRICK_H * 0.6, 1.8 * PITCH);
+        arm.rotation.y = side * -0.5;
+        g.add(arm);
+        const pincer = new THREE.Mesh(roundBrick(1.1, BRICK_H * 0.8), claw);
+        pincer.position.set(side * 1.8 * PITCH, BRICK_H * 0.6, 3 * PITCH);
+        g.add(pincer);
+      }
+      for (let i = 0; i < 3; i++) {
+        for (const side of [-1, 1]) {
+          const leg = new THREE.Mesh(brick(0.6, 1.6, false), shell);
+          leg.position.set(side * 1.3 * PITCH, BRICK_H * 0.35, (i - 0.5) * 0.9 * PITCH);
+          leg.rotation.y = side * 0.9;
+          g.add(leg);
+        }
+      }
+      return g;
+    };
+
+    /** Lizard: a low body, long tail and a splayed stance. */
+    const lizard = (): THREE.Group => {
+      const g = new THREE.Group();
+      const skin = plastic(0x6f8a3a, { roughness: 0.72 });
+      const skin2 = plastic(0x8fa84e, { roughness: 0.7 });
+      const dark = plastic(0x2b2b30, { roughness: 0.5 });
+      const body = new THREE.Mesh(brick(4, 2, false), skin);
+      body.position.y = BRICK_H * 0.9;
+      g.add(body);
+      const head = new THREE.Mesh(cone(1, 1.8), skin2);
+      head.rotation.x = Math.PI / 2;
+      head.position.set(0, BRICK_H * 1, 2.4 * PITCH);
+      g.add(head);
+      for (const side of [-1, 1]) {
+        const eye = new THREE.Mesh(roundBrick(0.4, PLATE_H), dark);
+        eye.position.set(side * 0.5 * PITCH, BRICK_H * 1.4, 2 * PITCH);
+        g.add(eye);
+      }
+      const tail = new THREE.Mesh(cone(0.7, 3.6), skin);
+      tail.rotation.x = -Math.PI / 2;
+      tail.position.set(0, BRICK_H * 0.9, -2.4 * PITCH);
+      g.add(tail);
+      for (const dx of [1.3, -1.3]) {
+        for (const dz of [0.9, -0.9]) {
+          const leg = new THREE.Mesh(brick(0.6, 1.4, false), skin2);
+          leg.position.set(dx * PITCH, BRICK_H * 0.5, dz * PITCH);
+          leg.rotation.y = (dx * dz > 0 ? 1 : -1) * 0.8;
+          g.add(leg);
+        }
+      }
+      return g;
+    };
+
+    /** Penguin: upright black body, white front, orange beak and feet. */
+    const penguin = (): THREE.Group => {
+      const g = new THREE.Group();
+      const black = plastic(0x22272e, { roughness: 0.6 });
+      const white = plastic(LEGO.white, { roughness: 0.6 });
+      const beak = plastic(LEGO.orange, { roughness: 0.6 });
+      const body = new THREE.Mesh(roundBrick(3, BRICK_H * 3), black);
+      g.add(body);
+      const belly = new THREE.Mesh(roundBrick(2.2, BRICK_H * 2.4), white);
+      belly.position.set(0, 0, 0.5 * PITCH);
+      g.add(belly);
+      const head = new THREE.Mesh(roundBrick(2.4, BRICK_H * 1.4), black);
+      head.position.y = BRICK_H * 3;
+      g.add(head);
+      for (const side of [-1, 1]) {
+        const eye = new THREE.Mesh(roundBrick(0.4, PLATE_H), white);
+        eye.position.set(side * 0.6 * PITCH, BRICK_H * 3.6, 1 * PITCH);
+        g.add(eye);
+        const wing = new THREE.Mesh(plate(1.2, 3), black);
+        wing.position.set(side * 1.5 * PITCH, BRICK_H * 1.6, 0);
+        wing.rotation.y = side * 0.35;
+        g.add(wing);
+        const foot = new THREE.Mesh(brick(1.2, 1.6, false), beak);
+        foot.position.set(side * 0.7 * PITCH, 0, 1 * PITCH);
+        g.add(foot);
+      }
+      const nose = new THREE.Mesh(cone(0.5, 1.1), beak);
+      nose.rotation.x = Math.PI / 2;
+      nose.position.set(0, BRICK_H * 3.4, 1.4 * PITCH);
+      g.add(nose);
+      return g;
+    };
+
+    /** Seal: a smooth blubbery body, whiskers and back flippers. */
+    const seal = (): THREE.Group => {
+      const g = new THREE.Group();
+      const skin = plastic(0x9aa4ad, { roughness: 0.55 });
+      const light = plastic(0xc7d0d6, { roughness: 0.55 });
+      const dark = plastic(0x2b2b30, { roughness: 0.5 });
+      const body = new THREE.Mesh(sphere(2.4), skin);
+      body.scale.set(1, 0.8, 1.7);
+      body.position.y = BRICK_H * 1.2;
+      g.add(body);
+      const head = new THREE.Mesh(sphere(1.4), light);
+      head.position.set(0, BRICK_H * 1.5, 2.4 * PITCH);
+      g.add(head);
+      for (const side of [-1, 1]) {
+        const eye = new THREE.Mesh(roundBrick(0.4, PLATE_H), dark);
+        eye.position.set(side * 0.6 * PITCH, BRICK_H * 1.7, 3.4 * PITCH);
+        g.add(eye);
+        const flip = new THREE.Mesh(brick(1, 2.6, false), skin);
+        flip.position.set(side * 0.9 * PITCH, BRICK_H * 0.5, -3 * PITCH);
+        flip.rotation.set(0.5, 0, side * 0.4);
+        g.add(flip);
+      }
+      const nose = new THREE.Mesh(roundBrick(0.5, PLATE_H), dark);
+      nose.position.set(0, BRICK_H * 1.4, 3.7 * PITCH);
+      g.add(nose);
+      return g;
+    };
+
+    /** Arctic fox: white coat with a thick tail and dark nose. */
+    const arcticFox = (): THREE.Group => {
+      const g = new THREE.Group();
+      const fur = plastic(LEGO.white, { roughness: 0.74 });
+      const fur2 = plastic(LEGO.lightBluishGray, { roughness: 0.7 });
+      const dark = plastic(0x2b2b30, { roughness: 0.5 });
+      const body = new THREE.Mesh(brick(5, 3, false), fur);
+      body.position.y = BRICK_H * 1.4;
+      g.add(body);
+      const head = new THREE.Mesh(cone(1.5, 2.2), fur);
+      head.rotation.x = Math.PI / 2;
+      head.position.set(0, BRICK_H * 1.7, 2.4 * PITCH);
+      g.add(head);
+      for (const side of [-1, 1]) {
+        const ear = new THREE.Mesh(cone(0.7, 1.3), fur2);
+        ear.position.set(side * 0.8 * PITCH, BRICK_H * 2.4, 1.9 * PITCH);
+        g.add(ear);
+      }
+      const nose = new THREE.Mesh(roundBrick(0.4, PLATE_H), dark);
+      nose.position.set(0, BRICK_H * 1.6, 3.6 * PITCH);
+      g.add(nose);
+      const tail = new THREE.Mesh(cone(1.4, 3.6), fur2);
+      tail.rotation.x = -Math.PI / 2;
+      tail.position.set(0, BRICK_H * 1.7, -2.7 * PITCH);
+      g.add(tail);
+      for (const dx of [1.5, -1.5]) {
+        for (const dz of [0.8, -0.8]) {
+          const leg = new THREE.Mesh(brick(0.9, 0.9, false), fur2);
+          leg.position.set(dx * PITCH, BRICK_H * 0.6, dz * PITCH);
+          g.add(leg);
+        }
+      }
+      return g;
+    };
+
+    /** Lava slime: a glowing blob that oozes over the rock. */
+    const lavaSlime = (): THREE.Group => {
+      const g = new THREE.Group();
+      const core = plastic(theme.glow ?? 0xff5a1f, { roughness: 0.4, emissive: theme.glow ?? 0xff5a1f, emissiveIntensity: 1.6 });
+      const shell = plastic(0x3a2420, { roughness: 0.7, transparent: true, opacity: 0.6 });
+      const dark = plastic(0x2b2b30, { roughness: 0.5 });
+      const blob = new THREE.Mesh(dome(3), shell);
+      blob.scale.set(1, 0.8, 1);
+      g.add(blob);
+      const glow = new THREE.Mesh(sphere(1.8), core);
+      glow.position.y = BRICK_H * 1;
+      glow.scale.set(1, 0.8, 1);
+      g.add(glow);
+      for (const side of [-1, 1]) {
+        const eye = new THREE.Mesh(roundBrick(0.5, PLATE_H), dark);
+        eye.position.set(side * 0.7 * PITCH, BRICK_H * 1.4, 2 * PITCH);
+        g.add(eye);
+      }
+      return g;
+    };
+
+    /** Fire bat: a black winged shape with glowing eyes. */
+    const fireBat = (): THREE.Group => {
+      const g = new THREE.Group();
+      const body = plastic(0x241d19, { roughness: 0.7 });
+      const wing = plastic(0x3a2a24, { roughness: 0.75 });
+      const ember = plastic(theme.glow ?? 0xff5a1f, { roughness: 0.4, emissive: theme.glow ?? 0xff5a1f, emissiveIntensity: 1.5 });
+      const torso = new THREE.Mesh(roundBrick(1.6, BRICK_H * 1.8), body);
+      torso.position.y = BRICK_H * 1.4;
+      g.add(torso);
+      const head = new THREE.Mesh(roundBrick(1.2, BRICK_H * 1.2), body);
+      head.position.set(0, BRICK_H * 2.6, 0.2 * PITCH);
+      g.add(head);
+      for (const side of [-1, 1]) {
+        const ear = new THREE.Mesh(cone(0.5, 1.2), body);
+        ear.position.set(side * 0.5 * PITCH, BRICK_H * 3.3, 0.2 * PITCH);
+        g.add(ear);
+        const eye = new THREE.Mesh(roundBrick(0.35, PLATE_H), ember);
+        eye.position.set(side * 0.4 * PITCH, BRICK_H * 2.7, 1 * PITCH);
+        g.add(eye);
+        const w = new THREE.Mesh(plate(2.6, 3), wing);
+        w.position.set(side * 1.6 * PITCH, BRICK_H * 1.6, -0.2 * PITCH);
+        w.rotation.set(0.2, side * 0.5, side * 0.9);
+        g.add(w);
+      }
+      return g;
+    };
+
+    /** Magma crab: a cracked shell with glowing seams and heavy claws. */
+    const magmaCrab = (): THREE.Group => {
+      const g = new THREE.Group();
+      const shell = plastic(0x2a1c16, { roughness: 0.6 });
+      const lava = lavaMat();
+      const legs = plastic(0x1a1512, { roughness: 0.7 });
+      const body = new THREE.Mesh(dome(3), shell);
+      body.scale.set(1.2, 0.6, 1);
+      body.position.y = BRICK_H * 0.6;
+      g.add(body);
+      for (let i = 0; i < 3; i++) {
+        const seam = new THREE.Mesh(brick(0.5, 3 - i * 0.6, false), lava);
+        seam.position.set((i - 1) * 0.7 * PITCH, BRICK_H * 0.9, 0);
+        g.add(seam);
+      }
+      for (const side of [-1, 1]) {
+        const arm = new THREE.Mesh(brick(1.2, 2.2, false), shell);
+        arm.position.set(side * 1.6 * PITCH, BRICK_H * 0.7, 1.6 * PITCH);
+        arm.rotation.y = side * -0.6;
+        g.add(arm);
+        const pincer = new THREE.Mesh(roundBrick(1.3, BRICK_H * 0.9), shell);
+        pincer.position.set(side * 2.4 * PITCH, BRICK_H * 0.7, 2.8 * PITCH);
+        g.add(pincer);
+        const clawGlow = new THREE.Mesh(roundBrick(0.6, PLATE_H), lava);
+        clawGlow.position.set(side * 2.9 * PITCH, BRICK_H * 0.7, 3.4 * PITCH);
+        g.add(clawGlow);
+        for (let i = 0; i < 3; i++) {
+          const leg = new THREE.Mesh(brick(0.6, 1.6, false), legs);
+          leg.position.set(side * 1.8 * PITCH, BRICK_H * 0.4, (i - 1) * 0.9 * PITCH);
+          leg.rotation.set(0, side * 0.7, 0);
+          g.add(leg);
+        }
+        const eye = new THREE.Mesh(roundBrick(0.4, PLATE_H), lava);
+        eye.position.set(side * 0.7 * PITCH, BRICK_H * 1.2, 1.4 * PITCH);
+        g.add(eye);
+      }
+      return g;
+    };
+
+    /** Butterfly: bright plate wings on a thin body, hovering low. */
+    const butterfly = (): THREE.Group => {
+      const g = new THREE.Group();
+      const body = plastic(0x2b2b30, { roughness: 0.5 });
+      const wingA = plastic(LEGO.brightYellow, { roughness: 0.55 });
+      const wingB = plastic(LEGO.orange, { roughness: 0.55 });
+      const thorax = new THREE.Mesh(post(0.35, 1.2), body);
+      thorax.rotation.z = Math.PI / 2;
+      thorax.position.y = BRICK_H * 2.2;
+      g.add(thorax);
+      for (const side of [-1, 1]) {
+        const w = new THREE.Mesh(plate(2.2, 1.6), side === 1 ? wingA : wingB);
+        w.position.set(side * 1.1 * PITCH, BRICK_H * 2.4, 0);
+        w.rotation.z = side * 0.35;
+        g.add(w);
+        const w2 = new THREE.Mesh(plate(1.6, 1.2), side === 1 ? wingB : wingA);
+        w2.position.set(side * 0.9 * PITCH, BRICK_H * 2.1, -PITCH);
+        w2.rotation.z = side * 0.5;
+        g.add(w2);
+      }
+      return g;
+    };
+
+    /** Goat: stocky body, short horns and a little beard. */
+    const goat = (): THREE.Group => {
+      const g = new THREE.Group();
+      const hide = plastic(0xd8d2c6, { roughness: 0.8 });
+      const dark = plastic(0x6e6a63, { roughness: 0.65 });
+      const body = new THREE.Mesh(brick(4, 2.4, false), hide);
+      body.position.y = BRICK_H * 1.6;
+      g.add(body);
+      const neck = new THREE.Mesh(brick(1.4, 1.4, false), hide);
+      neck.position.set(PITCH * 1.9, BRICK_H * 2.1, 0);
+      neck.rotation.z = -0.4;
+      g.add(neck);
+      const head = new THREE.Mesh(brick(1.6, 1.2, false), hide);
+      head.position.set(PITCH * 2.8, BRICK_H * 2.5, 0);
+      g.add(head);
+      for (const side of [-1, 1]) {
+        const horn = new THREE.Mesh(post(0.3, 1), dark);
+        horn.position.set(PITCH * 2.5, BRICK_H * 2.9, side * 0.5 * PITCH);
+        horn.rotation.z = -0.5;
+        g.add(horn);
+      }
+      const beard = new THREE.Mesh(brick(0.6, 0.6, false), dark);
+      beard.position.set(PITCH * 3.1, BRICK_H * 1.9, 0);
+      g.add(beard);
+      for (const dx of [1.2, -1.2]) {
+        for (const dz of [0.7, -0.7]) {
+          const leg = new THREE.Mesh(brick(0.7, 0.7, false), dark);
+          leg.position.set(dx * PITCH, BRICK_H * 0.5, dz * PITCH);
+          g.add(leg);
+        }
+      }
+      return g;
+    };
+
+    /** Crow: black bird with spread wings and a sharp beak. */
+    const crow = (): THREE.Group => {
+      const g = new THREE.Group();
+      const black = plastic(0x1e2226, { roughness: 0.55 });
+      const beak = plastic(LEGO.orange, { roughness: 0.6 });
+      const body = new THREE.Mesh(sphere(1.3), black);
+      body.scale.set(1, 0.9, 1.5);
+      body.position.y = BRICK_H * 1.1;
+      g.add(body);
+      const head = new THREE.Mesh(sphere(0.9), black);
+      head.position.set(0, BRICK_H * 1.8, 1.4 * PITCH);
+      g.add(head);
+      const bill = new THREE.Mesh(cone(0.35, 1), beak);
+      bill.rotation.x = Math.PI / 2;
+      bill.position.set(0, BRICK_H * 1.7, 2.3 * PITCH);
+      g.add(bill);
+      for (const side of [-1, 1]) {
+        const wing = new THREE.Mesh(plate(2.6, 1.4), black);
+        wing.position.set(side * 1.4 * PITCH, BRICK_H * 1.4, 0);
+        wing.rotation.z = side * 0.3;
+        g.add(wing);
+        const foot = new THREE.Mesh(post(0.25, 0.8), beak);
+        foot.position.set(side * 0.5 * PITCH, 0, 0.3 * PITCH);
+        g.add(foot);
+      }
+      const tail = new THREE.Mesh(plate(1.2, 2), black);
+      tail.position.set(0, BRICK_H * 1.1, -1.8 * PITCH);
+      g.add(tail);
+      return g;
+    };
+
     const landmarkMakers: Record<string, () => THREE.Group> = {
       pyramid,
       sphinx,
@@ -1342,6 +2523,48 @@ export class Board {
       obsidian,
       obsidianSpire,
       lavaPit,
+      rockArch,
+      logCabin,
+      lookoutTower,
+      mushroomRing,
+      tent,
+      ruins,
+      skull,
+      well,
+      snowman,
+      iceCave,
+      mammoth,
+      researchHut,
+      lavaRiver,
+      smokeVent,
+      magmaBoulder,
+      charredPines,
+      hayBales,
+      shrine,
+      flagPole,
+      supplyCrates,
+      pottery,
+      bonePile,
+    };
+
+    const faunaMakers: Record<string, () => THREE.Group> = {
+      polarBear,
+      deer,
+      rabbit,
+      fox,
+      owl,
+      camel,
+      scorpion,
+      lizard,
+      penguin,
+      seal,
+      arcticFox,
+      lavaSlime,
+      fireBat,
+      magmaCrab,
+      butterfly,
+      goat,
+      crow,
     };
 
     const bush = (x: number, z: number, color: number): THREE.Mesh => {
@@ -1389,6 +2612,10 @@ export class Board {
     // material, so the playfield sits inside a proper landscape rather than a
     // ring of nine props.
     const ring = HALF + 3.2;
+    // Per-map variant: each archetype gets its own scatter layout, landmark
+    // arrangement and dressing rotation, so the six maps are not all the same
+    // board with a different lane painted on it.
+    const variant = Math.max(0, MAP_ORDER.indexOf(currentMap().id));
     // Start right at the plate kerb and pack all the way out to the ridges, so
     // the landscape reads as continuous ground cover rather than props dotted
     // on an empty plain.
@@ -1400,29 +2627,33 @@ export class Board {
     // Each call scatters one prop type. Ranges deliberately overlap so the
     // types interleave instead of stacking into visible depth bands.
     const band = (count: number, r0: number, r1: number, seed: number): Scatter[] =>
-      scatterClumps(count, r0, r1, seed);
+      scatterClumps(count, r0, r1, seed + variant * 3.7);
 
     if (theme.terrain === 'grass') {
       // Forest: packed in three depth bands so the near ground is thick with
       // trees and the far ground still closes the horizon.
-      bandOf('broadleaf', broadleaf, band(92, NEAR, HALF + 14, 0.4));
-      bandOf('pine', pine, band(52, HALF + 7, HALF + 22, 1.9));
-      bandOf('broadleaf', broadleaf, band(38, HALF + 13, FAR, 3.3));
-      bandOf('fallenLog', fallenLog, band(12, NEAR + 1, HALF + 18, 2.2));
-      bandOf('undergrowth', undergrowth, band(36, NEAR - 0.5, HALF + 21, 5.1));
+      bandOf('broadleaf', broadleaf, band(104, NEAR, HALF + 14, 0.4));
+      bandOf('pine', pine, band(60, HALF + 7, HALF + 22, 1.9));
+      bandOf('broadleaf', broadleaf, band(44, HALF + 13, FAR, 3.3));
+      bandOf('fallenLog', fallenLog, band(16, NEAR + 1, HALF + 18, 2.2));
+      bandOf('undergrowth', undergrowth, band(44, NEAR - 0.5, HALF + 21, 5.1));
+      bandOf('undergrowth', undergrowth, band(22, HALF + 16, FAR, 6.6));
     } else if (theme.terrain === 'sand') {
-      bandOf('cactus', cactus, band(60, NEAR, HALF + 14, 0.7));
-      bandOf('cactus', cactus, band(36, HALF + 9, FAR, 2.8));
-      bandOf('palm', palm, band(18, NEAR + 0.8, HALF + 21, 1.3));
-      bandOf('obelisk', obelisk, band(8, HALF + 5, HALF + 25, 4.6));
+      bandOf('cactus', cactus, band(70, NEAR, HALF + 14, 0.7));
+      bandOf('cactus', cactus, band(44, HALF + 9, FAR, 2.8));
+      bandOf('palm', palm, band(24, NEAR + 0.8, HALF + 21, 1.3));
+      bandOf('obelisk', obelisk, band(12, HALF + 5, HALF + 25, 4.6));
+      bandOf('palm', palm, band(10, HALF + 15, FAR, 5.2));
     } else if (theme.terrain === 'snow') {
-      bandOf('pine', pine, band(68, NEAR, HALF + 14, 0.9));
-      bandOf('pine', pine, band(40, HALF + 9, FAR, 3.7));
-      bandOf('iceSpire', iceSpire, band(26, NEAR, HALF + 23, 2.4));
+      bandOf('pine', pine, band(78, NEAR, HALF + 14, 0.9));
+      bandOf('pine', pine, band(48, HALF + 9, FAR, 3.7));
+      bandOf('iceSpire', iceSpire, band(34, NEAR, HALF + 23, 2.4));
+      bandOf('pine', pine, band(18, HALF + 18, FAR, 5.5));
     } else {
-      bandOf('burnt', burnt, band(62, NEAR, HALF + 14, 1.1));
-      bandOf('burnt', burnt, band(38, HALF + 9, FAR, 4.2));
-      bandOf('obsidian', obsidian, band(30, NEAR, HALF + 21, 2.9));
+      bandOf('burnt', burnt, band(72, NEAR, HALF + 14, 1.1));
+      bandOf('burnt', burnt, band(46, HALF + 9, FAR, 4.2));
+      bandOf('obsidian', obsidian, band(38, NEAR, HALF + 21, 2.9));
+      bandOf('burnt', burnt, band(16, HALF + 17, FAR, 6.1));
     }
 
     // Arctic gets its fauna where the player will actually see it.
@@ -1450,17 +2681,36 @@ export class Board {
       count('igloo', 1);
     }
 
-    decor.add(bush(-ring * 0.45, ring * 1.05, theme.scatter));
-    decor.add(bush(ring * 0.5, -ring * 1.02, theme.scatter));
-    decor.add(bush(-ring * 1.02, ring * 0.25, theme.scatter));
-    decor.add(bush(ring * 0.62, ring * 0.52, theme.foliageAlt));
+    // The hand-placed dressing keeps its radius but swings around the board by
+    // the map variant, so no two maps stage the same silhouette in the same place.
+    const vrot = variant * (Math.PI / 5);
+    const spin = (x: number, z: number): [number, number] => [
+      x * Math.cos(vrot) - z * Math.sin(vrot),
+      x * Math.sin(vrot) + z * Math.cos(vrot),
+    ];
+
+    for (const [bx, bz, col] of [
+      [-ring * 0.45, ring * 1.05, theme.scatter],
+      [ring * 0.5, -ring * 1.02, theme.scatter],
+      [-ring * 1.02, ring * 0.25, theme.scatter],
+      [ring * 0.62, ring * 0.52, theme.foliageAlt],
+    ] as [number, number, number][]) {
+      const [sx, sz] = spin(bx, bz);
+      decor.add(bush(sx, sz, col));
+    }
 
     // Rocks anchor the scene and vary the silhouette per theme.
-    decor.add(rock(-ring * 0.72, -ring * 0.62, theme.wood, 1));
-    decor.add(rock(ring * 0.66, -ring * 0.5, theme.wood, 2));
-    decor.add(rock(-ring * 0.2, -ring * 1.2, theme.wood, 3));
+    for (const [rx, rz, i] of [
+      [-ring * 0.72, -ring * 0.62, 1],
+      [ring * 0.66, -ring * 0.5, 2],
+      [-ring * 0.2, -ring * 1.2, 3],
+    ] as [number, number, number][]) {
+      const [sx, sz] = spin(rx, rz);
+      decor.add(rock(sx, sz, theme.wood, i));
+    }
 
-    pile.position.set(ring * 0.4, -0.5, ring * 1.08);
+    const [pileX, pileZ] = spin(ring * 0.4, ring * 1.08);
+    pile.position.set(pileX, -0.5, pileZ);
     decor.add(pile);
 
     // Hero props sit at fixed spots just clear of the baseplate. Bumped up in
@@ -1474,21 +2724,87 @@ export class Board {
       [ring * 0.82, ring * 1.02, 1.12, 3.4],
       [ring * 1.14, ring * 0.48, 1.4, 5.2],
       [-ring * 0.9, -ring * 1.0, 1.22, 0.3],
+      [ring * 0.38, ring * 1.16, 1.08, 4.8],
+      [-ring * 1.16, -ring * 0.24, 1.16, 1.8],
+      [ring * 0.12, -ring * 1.18, 1.05, 2.7],
+      [-ring * 0.62, -ring * 1.08, 0.98, 5.8],
+      [ring * 0.92, ring * 0.82, 1.02, 0.9],
+      [-ring * 1.02, ring * 0.78, 1.1, 3.9],
+      // Outer ring: a touch smaller so the near spots stay the heroes.
+      [ring * 1.3, -ring * 0.1, 0.9, 1.4],
+      [-ring * 1.34, ring * 0.1, 0.95, 4.2],
+      [ring * 0.2, ring * 1.32, 0.88, 2.3],
+      [-ring * 0.2, -ring * 1.3, 0.92, 5.5],
+      [ring * 1.24, ring * 0.86, 0.85, 3.1],
+      [-ring * 1.18, -ring * 0.88, 0.87, 0.7],
     ];
     theme.landmarks.forEach((kind, i) => {
       const make = landmarkMakers[kind];
       if (!make) return;
-      const [x, z, scale, rot] = landmarkSpots[i % landmarkSpots.length];
+      const [x, z, scale, rot] = landmarkSpots[(i * 5 + variant * 2) % landmarkSpots.length];
       const o = make();
       o.position.set(x, -0.5, z);
-      o.scale.setScalar(scale);
-      o.rotation.y = rot;
+      o.scale.setScalar(scale * (0.94 + ((i * 2 + variant) % 4) * 0.04));
+      o.rotation.y = rot + variant * 0.7;
       addShadows(o);
       decor.add(o);
       this.landmarks.push(o);
       this.sceneryKinds.push(kind);
       count(kind, 1);
     });
+    // Each map also carries one or two extra props from its theme's own
+    // roster, placed smaller and further out, so the archetypes differ in
+    // content as well as position.
+    const extraCount = 1 + (variant % 3);
+    for (let k = 0; k < extraCount; k++) {
+      const kind = theme.landmarks[(variant * 2 + k * 3) % theme.landmarks.length];
+      const make = landmarkMakers[kind];
+      if (!make) continue;
+      const [x, z, scale, rot] = landmarkSpots[(7 + variant * 3 + k * 4) % landmarkSpots.length];
+      const o = make();
+      o.position.set(x, -0.5, z);
+      o.scale.setScalar(scale * 0.72);
+      o.rotation.y = rot + 1.3 + variant * 0.5;
+      addShadows(o);
+      decor.add(o);
+      this.landmarks.push(o);
+      this.sceneryKinds.push(kind);
+      count(kind, 1);
+    }
+
+    // Fauna: smaller animals, closer in so they read at play scale.
+    if (theme.fauna?.length) {
+      const faunaSpots: [number, number, number, number][] = [
+        [ring * 0.8, ring * 0.3, 0.72, 1.2],
+        [-ring * 0.7, ring * 0.6, 0.68, 2.4],
+        [ring * 0.3, -ring * 0.82, 0.64, 3.8],
+        [-ring * 0.88, -ring * 0.62, 0.66, 0.4],
+        [ring * 0.58, ring * 0.72, 0.62, 4.6],
+        [-ring * 0.38, -ring * 0.92, 0.7, 2.9],
+        [ring * 0.95, -ring * 0.35, 0.6, 5.1],
+        [-ring * 0.15, ring * 0.95, 0.66, 1.7],
+        [ring * 0.05, -ring * 0.98, 0.62, 3.3],
+        [-ring * 0.95, ring * 0.15, 0.64, 0.9],
+      ];
+      theme.fauna.forEach((kind, i) => {
+        const make = faunaMakers[kind];
+        if (!make) return;
+        const base = faunaSpots[(i * 3 + variant * 2) % faunaSpots.length];
+        const copies = 2 + ((i + variant) % 2);
+        for (let j = 0; j < copies; j++) {
+          const [bx, bz, bs, brot] = base;
+          const spread = (j - (copies - 1) / 2) * (0.55 * PITCH);
+          const o = make();
+          o.position.set(bx + spread, -0.5, bz + spread * 0.6);
+          o.scale.setScalar(bs * (0.95 + j * 0.06));
+          o.rotation.y = brot + variant * 0.9 + j * 1.2;
+          addShadows(o);
+          decor.add(o);
+          this.sceneryKinds.push(kind);
+          count(kind, 1);
+        }
+      });
+    }
 
     // Themed ground cover on the terrain plane.
     decor.add(...this.groundCover(theme));
@@ -1506,11 +2822,12 @@ export class Board {
   private groundCover(theme: BoardTheme): THREE.Object3D[] {
     const R = HALF + 2.6;
     const inner = HALF + 1.5;
+    const variant = Math.max(0, MAP_ORDER.indexOf(currentMap().id));
 
     // Ground cover is flat, so it needs far less clumping than the props, but it
     // goes through the same scatter so it stops reading as a perfect spiral.
     const spots = (count: number, spread: number, seed = 0): Scatter[] =>
-      scatterClumps(count, inner, inner + spread, seed + 40);
+      scatterClumps(count, inner, inner + spread, seed + 40 + variant * 2.9);
 
     const out: THREE.Object3D[] = [];
 

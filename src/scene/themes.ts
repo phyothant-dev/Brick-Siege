@@ -35,7 +35,57 @@ export type LandmarkKind =
   | 'volcano'
   | 'obsidian'
   | 'obsidianSpire'
-  | 'lavaPit';
+  | 'lavaPit'
+  // Forest
+  | 'rockArch'
+  | 'logCabin'
+  | 'lookoutTower'
+  | 'mushroomRing'
+  // Desert
+  | 'tent'
+  | 'ruins'
+  | 'skull'
+  | 'well'
+  // Arctic
+  | 'snowman'
+  | 'iceCave'
+  | 'mammoth'
+  | 'researchHut'
+  // Volcano
+  | 'lavaRiver'
+  | 'smokeVent'
+  | 'magmaBoulder'
+  | 'charredPines'
+  // Shared dressing
+  | 'hayBales'
+  | 'shrine'
+  | 'flagPole'
+  | 'supplyCrates'
+  | 'pottery'
+  | 'bonePile';
+
+/**
+ * Critters that live in a theme's background. Placed a little closer to the
+ * board than the hero landmarks so the player actually notices them.
+ */
+export type FaunaKind =
+  | 'polarBear'
+  | 'deer'
+  | 'rabbit'
+  | 'fox'
+  | 'owl'
+  | 'camel'
+  | 'scorpion'
+  | 'lizard'
+  | 'penguin'
+  | 'seal'
+  | 'arcticFox'
+  | 'lavaSlime'
+  | 'fireBat'
+  | 'magmaCrab'
+  | 'butterfly'
+  | 'goat'
+  | 'crow';
 
 /** Ground treatment scattered on the terrain plane around the baseplate. */
 export type GroundKind = 'grass' | 'sand' | 'snow' | 'lava';
@@ -50,6 +100,8 @@ export interface BoardTheme {
   prop: PropKind;
   /** Hero props, placed once each at fixed spots. */
   landmarks: LandmarkKind[];
+  /** Critters scattered around the board, closer in than the landmarks. */
+  fauna: FaunaKind[];
   /** How the terrain around the baseplate is dressed. */
   terrain: GroundKind;
   /** Emissive accent, used for lava glow. */
@@ -76,7 +128,11 @@ export const THEMES: Record<ThemeId, BoardTheme> = {
     sky: 0x8fc0f2,
     ground: 0xe9e7e0,
     prop: 'broadleaf',
-    landmarks: ['bigTree', 'boulder', 'stump', 'campfire'],
+    landmarks: [
+      'bigTree', 'logCabin', 'rockArch', 'boulder', 'stump', 'campfire', 'lookoutTower',
+      'mushroomRing', 'hayBales', 'shrine', 'flagPole',
+    ],
+    fauna: ['deer', 'rabbit', 'fox', 'owl', 'butterfly', 'goat'],
     terrain: 'grass',
     foliage: LEGO.brightGreen,
     foliageAlt: LEGO.darkGreen,
@@ -92,7 +148,11 @@ export const THEMES: Record<ThemeId, BoardTheme> = {
     sky: 0xf0c987,
     ground: 0xe4c98f,
     prop: 'cactus',
-    landmarks: ['pyramid', 'pyramid', 'pyramid', 'sphinx', 'oasis'],
+    landmarks: [
+      'pyramid', 'pyramid', 'sphinx', 'obelisk', 'ruins', 'tent', 'oasis', 'skull', 'well',
+      'pottery', 'shrine', 'flagPole',
+    ],
+    fauna: ['camel', 'scorpion', 'lizard', 'goat'],
     terrain: 'sand',
     foliage: LEGO.brightGreen,
     foliageAlt: LEGO.green,
@@ -108,7 +168,11 @@ export const THEMES: Record<ThemeId, BoardTheme> = {
     sky: 0xbcd8ea,
     ground: 0xeaf3f8,
     prop: 'pine',
-    landmarks: ['iceberg', 'iceArch', 'igloo', 'polarBear'],
+    landmarks: [
+      'iceberg', 'iceArch', 'igloo', 'mammoth', 'snowman', 'iceCave', 'researchHut',
+      'supplyCrates', 'flagPole',
+    ],
+    fauna: ['polarBear', 'penguin', 'seal', 'arcticFox'],
     terrain: 'snow',
     foliage: LEGO.green,
     foliageAlt: LEGO.darkGreen,
@@ -124,7 +188,11 @@ export const THEMES: Record<ThemeId, BoardTheme> = {
     sky: 0x4a2a24,
     ground: 0x4d423c,
     prop: 'burnt',
-    landmarks: ['volcano', 'obsidianSpire', 'lavaPit', 'obsidian'],
+    landmarks: [
+      'volcano', 'obsidianSpire', 'lavaPit', 'obsidian', 'lavaRiver', 'smokeVent', 'magmaBoulder',
+      'charredPines', 'bonePile', 'flagPole',
+    ],
+    fauna: ['lavaSlime', 'fireBat', 'magmaCrab', 'crow'],
     terrain: 'lava',
     glow: 0xff5a1f,
     foliage: LEGO.black,
