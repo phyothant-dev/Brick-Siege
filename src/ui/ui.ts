@@ -59,7 +59,7 @@ export class Ui {
   private mapBlurb = $('map-blurb');
 
   private shopBar = $('shop-bar');
-  private pickbarHandle = $<HTMLButtonElement>('pickbar-handle');
+  private pickbarToggles = Array.from(document.querySelectorAll<HTMLButtonElement>('.pickbar-toggle'));
   private buildButtons = new Map<TowerId, HTMLButtonElement>();
   private waveBtn = $<HTMLButtonElement>('btn-start-wave');
   private waveLabel = $('wave-btn-label');
@@ -202,18 +202,17 @@ export class Ui {
   /** Show or hide the bottom pick bar (tower shop / attacker palette). */
   private setPickbarVisible(visible: boolean): void {
     document.body.classList.toggle('pickbar-hidden', !visible);
-    this.updatePickbarHandle();
+    this.updatePickbarToggles();
   }
 
-  private updatePickbarHandle(): void {
+  private updatePickbarToggles(): void {
     const hidden = document.body.classList.contains('pickbar-hidden');
     const label = this.game.side === 'attacker' ? 'UNITS' : 'TOWERS';
-    this.pickbarHandle.innerHTML = hidden
-      ? `<b>&#9650;</b> SHOW ${label}`
-      : `<b>&#9660;</b> HIDE ${label}`;
-    this.pickbarHandle.title = hidden
-      ? `Show the ${label.toLowerCase()} bar (B)`
-      : `Hide the ${label.toLowerCase()} bar (B)`;
+    const text = hidden ? `\u25b2 ${label}` : '\u25bc HIDE';
+    for (const btn of this.pickbarToggles) {
+      btn.innerHTML = `<span class="build-btn__name">${text}</span>`;
+      btn.title = hidden ? `Show the ${label.toLowerCase()} bar (B)` : 'Hide the pick bar (B)';
+    }
   }
 
   /** Swap the tower shop for the unit palette, and relabel the HUD. */
@@ -222,7 +221,7 @@ export class Ui {
     this.shopBar.classList.toggle('is-hidden', attacking);
     $('attack-bar')?.classList.toggle('is-hidden', !attacking);
     document.body.dataset['side'] = this.game.side;
-    this.updatePickbarHandle();
+    this.updatePickbarToggles();
 
     // Both sides get a visible clock: the defender counts to the next wave, the
     // attacker counts down its own assault.
@@ -332,10 +331,13 @@ export class Ui {
       btn.addEventListener('click', () => sfx('click'));
     }
 
-    // Pick-bar drawer pull: hide the shop/palette for a full-board view.
-    this.pickbarHandle.addEventListener('click', () => {
-      this.setPickbarVisible(document.body.classList.contains('pickbar-hidden'));
-    });
+    // Pick-bar hide strip (the last button inside each bar): collapses the
+    // bar in place to a single chip, so nothing ever overlaps this control.
+    for (const btn of this.pickbarToggles) {
+      btn.addEventListener('click', () => {
+        this.setPickbarVisible(document.body.classList.contains('pickbar-hidden'));
+      });
+    }
     document.addEventListener('keydown', (e) => {
       if (e.code === 'KeyB' && !e.repeat && this.game.phase !== 'menu') {
         this.setPickbarVisible(document.body.classList.contains('pickbar-hidden'));
