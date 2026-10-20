@@ -213,7 +213,9 @@ export class Controls {
 
     const cell = this.cellAt(e);
     if (!cell) return;
-    if (this.game.combining && e.pointerType === 'touch') return;
+    // Touch taps reach clickCell exactly like mouse ones — dropping the old
+    // `combining && touch` guard, which made completing (or cancelling) a
+    // combine impossible on touchscreens.
     this.game.clickCell(cell.gx, cell.gy);
   };
 
