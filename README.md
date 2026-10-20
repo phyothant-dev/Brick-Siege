@@ -33,7 +33,7 @@ turrets, the resistance table, economy, combining, and strategy.
   expected to swap bricks mid-run.
 - **25 hand-tuned waves** ending in a boss.
 - **Full economy** — kill rewards, wave rewards, early-call bonuses, and a 60% sell refund.
-- **Camera** — free orbit, pinch/scroll zoom and WASD panning.
+- **Camera** — right-drag (or two-finger twist on touch) to orbit, pinch/scroll zoom, WASD panning.
 - **Pause, 2× speed, codex, victory and defeat screens.**
 - Mouse, keyboard and touch support.
 
@@ -47,9 +47,10 @@ turrets, the resistance table, economy, combining, and strategy.
 | Combine towers | `C`, or the **COMBINE** button, then click the partner |
 | Sell selected tower (60% refund) | `Delete` / `Backspace` |
 | Cycle tower type | `Q` |
-| Pan camera | `W` `A` `S` `D` / arrow keys / middle-drag / left-drag |
-| Orbit camera | Right-drag |
+| Pan camera | `W` `A` `S` `D` / arrow keys / middle-drag / one-finger drag |
+| Orbit camera | Right-drag (touch: two-finger twist to spin, up/down to tilt) |
 | Zoom | Mouse wheel / pinch |
+| Show / hide pick bar | `B`, or the bar's **▼ HIDE** strip |
 | Call next wave early | `Space` |
 | Pause | `Esc` or `P` |
 | Toggle 2× speed | `X` |

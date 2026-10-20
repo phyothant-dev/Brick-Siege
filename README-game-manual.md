@@ -84,9 +84,10 @@ spreading thin across all four.
 | --- | --- |
 | Select a tower | Click it |
 | **Move the tower panel** | **Drag its title bar** (double-click the bar to reset its spot) |
-| **Look around the board** | **Right-drag** (or two-finger drag on touch) |
-| Pan the camera | Left-drag |
+| **Look around the board** | **Right-drag** to orbit (touch: two-finger twist to spin, drag up/down to tilt) |
+| Pan the camera | Middle-drag, `W` `A` `S` `D` / arrows, or one-finger drag |
 | Zoom | Scroll wheel / pinch |
+| Show / hide the pick bar | `B`, or the **▼ HIDE** / **▲ TOWERS** strip on the bar |
 | Start building | Click a shop brick, then click an empty stud |
 | Choose tower type | Click a shop brick, or press `1`–`9`, `0`, `-`, `=` |
 | Cycle tower types | `Q` |
@@ -116,15 +117,21 @@ spreading thin across all four.
 | Toggle 2× speed | `X` |
 | Codex | `H` |
 | Mute | `M` |
+| Show / hide pick bar | `B` |
 | Restart | `Shift`+`R` |
 | Camera pan | `W` `A` `S` `D` / arrow keys |
 | Camera zoom | Mouse wheel / pinch |
 
 ### Camera
 
-Right-drag to orbit. Left-drag or `WASD` to pan. Scroll or pinch to zoom. The camera
-pulls back far enough to see the whole map at once; zoom in when you want to read a
-single turret's range ring.
+Right-drag to orbit the board — horizontal dragging spins the view around the
+map, vertical dragging tilts the angle (clamped so the camera never dives under
+the board). Middle-drag or `WASD` to pan, scroll to zoom.
+
+On touch, one finger drags the camera around the board; two fingers give you
+the full orbit: pinch to zoom, twist (rotate two fingers) to spin the view, and
+drag up/down to tilt. The camera pulls back far enough to see the whole map at
+once; zoom in when you want to read a single turret's range ring.
 
 ---
 
