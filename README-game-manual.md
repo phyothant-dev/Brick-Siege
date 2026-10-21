@@ -202,8 +202,9 @@ without adding geometry to the shadow pass or meaningfully costing draw calls.
 
 ## 3. The loop
 
-This is the defender loop. As the attacker there is no clock and no wave: arm a
-creature, tap a lane entrance, and watch the keep lose HP.
+This is the defender loop. As the attacker there are no waves and no build phase:
+arm a creature, tap a lane entrance, and watch the keep lose HP before the
+300-second assault clock runs out.
 
 1. **Build phase.** The clock reads BUILD PHASE. Spend bricks placing turrets on any
    stud that is not lane and not the keep.
