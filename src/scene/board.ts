@@ -42,6 +42,13 @@ import { plastic } from './materials';
 /** Half the width of the keep's curtain wall, in world units. */
 const WALL_HALF = (16 * PITCH) / 2;
 
+/**
+ * How big the scenery outside the baseplate is drawn. The board is fourteen
+ * tiles across, so props at their original size look like weeds in a field;
+ * scaled up they read as trees, which is what the arena is supposed to sit in.
+ */
+const PROP_SCALE = 1.5;
+
 /** Long brick with a stud row, used for the baseplate kerb. */
 function kerbGeometry(studs: number, thickness: number): THREE.BufferGeometry {
   const body = new THREE.BoxGeometry(studs * PITCH, BRICK_H, thickness);
@@ -87,6 +94,8 @@ interface Scatter {
   z: number;
   scale: number;
   rot: number;
+  /** Height of the prop's base. Defaults to the terrain level. */
+  y?: number;
 }
 
 /**
@@ -104,14 +113,14 @@ function stampProp(make: () => THREE.Group, spots: Scatter[]): THREE.Group {
   const pos = new THREE.Vector3();
   const quat = new THREE.Quaternion();
   const scl = new THREE.Vector3();
-  const spot = new THREE.Matrix4();
-  const rel = new THREE.Matrix4();
-  const up = new THREE.Vector3(0, 1, 0);
+    const spot = new THREE.Matrix4();
+    const rel = new THREE.Matrix4();
+    const up = new THREE.Vector3(0, 1, 0);
 
-  for (const s of spots) {
-    const g = make();
-    quat.setFromAxisAngle(up, s.rot);
-    spot.compose(pos.set(s.x, -0.5, s.z), quat, scl.set(s.scale, s.scale, s.scale));
+    for (const s of spots) {
+      const g = make();
+      quat.setFromAxisAngle(up, s.rot);
+      spot.compose(pos.set(s.x, s.y ?? -0.5, s.z), quat, scl.set(s.scale, s.scale, s.scale));
     g.updateMatrixWorld(true);
     g.traverse((o) => {
       const mesh = o as THREE.Mesh;
@@ -126,23 +135,34 @@ function stampProp(make: () => THREE.Group, spots: Scatter[]): THREE.Group {
   }
 
   for (const [mat, parts] of byMat) {
-    const merged = parts.length > 1 ? mergeGeometries(parts, false) : null;
+    // Three's extrusions are not indexed while its bricks are, and a merge
+    // needs every geometry in the bucket to agree about that. Mixed buckets
+    // are flattened to non-indexed so the prop survives.
+    const mixed =
+      parts.length > 1 &&
+      parts.some((p) => p.index !== null) &&
+      parts.some((p) => p.index === null);
+    const list = mixed
+      ? parts.map((p) => (p.index !== null ? p.toNonIndexed() : p.clone()))
+      : parts;
+    const merged = list.length > 1 ? mergeGeometries(list, false) : null;
     if (merged) {
       const m = new THREE.Mesh(merged, mat);
       m.castShadow = true;
       m.receiveShadow = true;
       out.add(m);
-      parts.forEach((p) => p.dispose());
+      list.forEach((p) => p.dispose());
     } else {
       // Mixed attributes that cannot be merged: keep them separate rather than
       // lose the prop.
-      for (const p of parts) {
+      for (const p of list) {
         const m = new THREE.Mesh(p, mat);
         m.castShadow = true;
         m.receiveShadow = true;
         out.add(m);
       }
     }
+    if (mixed) parts.forEach((p) => p.dispose());
   }
   return out;
 }
@@ -200,6 +220,121 @@ function scatterClumps(count: number, rInner: number, rOuter: number, seed = 0):
     out.push({ x, z, scale: 0.62 + rand() * 0.68, rot: rand() * Math.PI * 2 });
   }
   return out;
+}
+
+/**
+ * Grow a band of props without moving it. The scatter helpers lay out the
+ * positions; this decides how big the things standing there are.
+ */
+function scaleUp(spots: Scatter[], factor: number): Scatter[] {
+  return spots.map((s) => ({ ...s, scale: s.scale * factor }));
+}
+
+/**
+ * Even, gapless coverage around an annulus.
+ *
+ * The tree belt that wraps the arena cannot be clumped: clumps leave gaps, and
+ * a gap in the belt is a hole in the horizon right where the player is looking.
+ * So the belt steps around the circle in fixed angular slices, each slice
+ * jittered in both angle and radius. The result is continuous cover that still
+ * refuses to read as a perfect ring, because the radius wanders.
+ */
+function scatterBelt(count: number, rInner: number, rOuter: number, seed = 0): Scatter[] {
+  const rand = makeRng(seed + 613);
+  const out: Scatter[] = [];
+  const step = (Math.PI * 2) / Math.max(1, count);
+  for (let i = 0; i < count; i++) {
+    const a = (i + (rand() - 0.5) * 0.9) * step;
+    const r = rInner + (rOuter - rInner) * rand();
+    out.push({
+      x: Math.cos(a) * r,
+      z: Math.sin(a) * r,
+      scale: 0.66 + rand() * 0.72,
+      rot: rand() * Math.PI * 2,
+    });
+  }
+  return out;
+}
+
+/**
+ * Blend two colours. Used for the worn ring of ground around the baseplate,
+ * which fades from trodden earth back into the terrain colour.
+ */
+function mixColor(a: number, b: number, t: number): number {
+  const ar = (a >> 16) & 255;
+  const ag = (a >> 8) & 255;
+  const ab = a & 255;
+  const br = (b >> 16) & 255;
+  const bg = (b >> 8) & 255;
+  const bb = b & 255;
+  const r = Math.round(ar + (br - ar) * t);
+  const g = Math.round(ag + (bg - ag) * t);
+  const bl = Math.round(ab + (bb - ab) * t);
+  return (r << 16) | (g << 8) | bl;
+}
+
+/**
+ * A soft radial falloff, painted once and shared by every contact shadow.
+ * The shadow map cannot resolve a shadow at the base of a distant tree, so the
+ * props also get a painted blob of ambient occlusion under them.
+ */
+let softBlob: THREE.Texture | null = null;
+function softBlobTexture(): THREE.Texture {
+  if (softBlob) return softBlob;
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    g.addColorStop(0, 'rgba(255,255,255,0.95)');
+    g.addColorStop(0.45, 'rgba(255,255,255,0.5)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, size, size);
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.needsUpdate = true;
+  softBlob = tex;
+  return tex;
+}
+
+/**
+ * Every prop in the woods gets a blob of ambient occlusion under it, merged
+ * into a single mesh so the whole surround costs one draw call.
+ */
+function contactShadows(
+  groups: { spots: Scatter[]; radius: number }[],
+  opacity = 0.32,
+): THREE.Mesh | null {
+  const parts: THREE.BufferGeometry[] = [];
+  for (const { spots, radius } of groups) {
+    for (const s of spots) {
+      const size = radius * 2 * s.scale;
+      const g = new THREE.PlaneGeometry(size, size);
+      g.rotateX(-Math.PI / 2);
+      g.translate(s.x, (s.y ?? -0.5) + 0.012, s.z);
+      parts.push(g);
+    }
+  }
+  if (!parts.length) return null;
+  const merged = mergeGeometries(parts, false);
+  parts.forEach((p) => p.dispose());
+  if (!merged) return null;
+  const mat = new THREE.MeshBasicMaterial({
+    map: softBlobTexture(),
+    color: 0x2b2a1e,
+    transparent: true,
+    opacity,
+    depthWrite: false,
+    fog: true,
+  });
+  const mesh = new THREE.Mesh(merged, mat);
+  mesh.renderOrder = 1;
+  mesh.castShadow = false;
+  mesh.receiveShadow = false;
+  return mesh;
 }
 
 export class Board {
@@ -344,7 +479,9 @@ export class Board {
     this.horizonFar = far.material as THREE.MeshBasicMaterial;
     this.horizon = horizon;
     grass.rotation.x = -Math.PI / 2;
-    grass.position.y = -0.62;
+    // The terrain sits at the height the scenery stands on, so the forest
+    // around the arena is planted in the ground rather than floating over it.
+    grass.position.y = -0.5;
     grass.receiveShadow = true;
     this.group.add(grass);
     this.group.add(this.horizon);
@@ -1183,6 +1320,255 @@ export class Board {
       shroom.position.set(PITCH * 0.7, PITCH * 0.35, -PITCH * 0.3);
       g.add(shroom);
       return g;
+    };
+
+    // ------------------------------------------------- the surrounding land
+    // Props for the land outside the baseplate: the trees that wrap the
+    // arena, the rocks and old ruins in the woods, and the little patches of
+    // sand and water that break the treeline up.
+
+    // Stone for the rocks and the old walls. The theme's own wood colour is
+    // far too close to the desert's sand, so it is pulled towards grey stone
+    // that reads against every ground the board can stand on.
+    const rockStone = plastic(mixColor(theme.horizonAlt, 0x8f8a80, 0.75), { roughness: 0.96 });
+    const ruinStone = plastic(mixColor(theme.horizonAlt, 0x9c948a, 0.75), { roughness: 0.95 });
+    const ruinBrick = plastic(mixColor(theme.wood, 0xa2674a, 0.6), { roughness: 0.92 });
+
+    /** Rock cluster: a few tilted blocks with a cap of moss. */
+    const rockCluster = (): THREE.Group => {
+      const g = new THREE.Group();
+      const stone = rockStone;
+      const moss = plastic(theme.foliageAlt, { roughness: 0.85 });
+      const a = new THREE.Mesh(slopeBrick(5, 4), stone);
+      a.position.y = 0.06;
+      const b2 = new THREE.Mesh(brick(3, 3, false), stone);
+      b2.position.set(0.7, 0.05, 0.5);
+      b2.rotation.y = 0.9;
+      const c = new THREE.Mesh(brick(2, 2, false), stone);
+      c.position.set(-0.75, 0.04, -0.55);
+      c.rotation.y = 2.1;
+      const cap = new THREE.Mesh(plate(3, 3, false), moss);
+      cap.position.set(0, 0.18, 0);
+      g.add(a, b2, c, cap);
+      return g;
+    };
+
+    /** Ancient brick-built ruin: a crumbling wall, a broken column, rubble. */
+    const ancientRuin = (): THREE.Group => {
+      const g = new THREE.Group();
+      const stone = ruinStone;
+      const oldBrick = ruinBrick;
+      const moss = plastic(theme.foliageAlt, { roughness: 0.85 });
+      // Crumbling wall: stacks of brick with gaps and a broken top course.
+      for (let i = 0; i < 8; i++) {
+        const h = 1 + ((i * 3) % 3);
+        for (let k = 0; k < h; k++) {
+          const b = new THREE.Mesh(brick(2, 1, false), (i + k) % 3 === 0 ? stone : oldBrick);
+          b.position.set((i - 3.5) * 2 * PITCH, k * BRICK_H, (((i * 7) % 5) - 2) * 0.02);
+          b.rotation.y = (((i * 13) % 7) - 3) * 0.012;
+          g.add(b);
+        }
+      }
+      // Broken column with a cracked capital.
+      for (let k = 0; k < 3; k++) {
+        const c = new THREE.Mesh(roundBrick(3, BRICK_H), stone);
+        c.position.set(4.6 * PITCH, k * BRICK_H, 1.4 * PITCH);
+        g.add(c);
+      }
+      const capital = new THREE.Mesh(plate(3, 3, false), oldBrick);
+      capital.position.set(4.6 * PITCH, 3 * BRICK_H + PLATE_H, 1.4 * PITCH);
+      capital.rotation.z = 0.12;
+      g.add(capital);
+      // Toppled slab and scattered rubble.
+      const slab = new THREE.Mesh(brick(5, 2, false), oldBrick);
+      slab.position.set(-2.6 * PITCH, BRICK_H * 0.5, 2.2 * PITCH);
+      slab.rotation.set(0.08, 0.42, 0.14);
+      g.add(slab);
+      for (let i = 0; i < 5; i++) {
+        const r = new THREE.Mesh(brick(1, 1, false), i % 2 ? stone : oldBrick);
+        r.position.set((i - 2) * 1.5 * PITCH, BRICK_H * 0.25, (i % 2 ? 1 : -1) * 2.9 * PITCH);
+        r.rotation.y = i * 0.7;
+        g.add(r);
+      }
+      // Moss creeping over the old stone.
+      for (const [mx, mz] of [
+        [-2.4, 0.3],
+        [1.6, -0.5],
+        [4.2, 1.1],
+        [-5.2, -0.2],
+      ] as [number, number][]) {
+        const m = new THREE.Mesh(plate(2, 2, false), moss);
+        m.position.set(mx * PITCH, BRICK_H * 0.05, mz * PITCH);
+        m.rotation.y = mx * 0.3;
+        g.add(m);
+      }
+      return g;
+    };
+
+    /**
+     * A small patch of other ground out in the woods: a disc of sand, a pool
+     * of water and a couple of palms. Deserts get sand and cacti, the arctic
+     * gets a melt pool, the volcano gets a molten one.
+     */
+    const groundPatch = (): THREE.Group => {
+      const g = new THREE.Group();
+      const kind = theme.surround.patch;
+      const sandColor =
+        kind === 'spring' ? 0xdfe9ee : kind === 'magma' ? 0x3a322c : kind === 'dune' ? 0xe8cf9c : LEGO.tan;
+      const sand = plastic(sandColor, { roughness: 0.96 });
+      const disc = new THREE.Mesh(new THREE.CylinderGeometry(3.1, 3.35, 0.16, 18), sand);
+      disc.position.y = -0.07;
+      g.add(disc);
+
+      if (kind === 'magma') {
+        const lava = plastic(theme.glow ?? 0xff5a1f, {
+          emissive: theme.glow ?? 0xff5a1f,
+          emissiveIntensity: 1.7,
+          roughness: 0.42,
+        });
+        const pool = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 0.08, 16), lava);
+        pool.position.y = 0.04;
+        g.add(pool);
+        const crust = plastic(0x241c18, { roughness: 0.9 });
+        for (let i = 0; i < 5; i++) {
+          const a = (i / 5) * Math.PI * 2;
+          const c = new THREE.Mesh(brick(2, 1, false), crust);
+          c.position.set(Math.cos(a) * 1.9 * PITCH, 0.06, Math.sin(a) * 1.9 * PITCH);
+          c.rotation.y = a;
+          g.add(c);
+        }
+        return g;
+      }
+
+      // Water: a shallow pool with a bright rim, in the theme's own colour.
+      const waterColor = kind === 'spring' ? 0x8fd6e8 : kind === 'dune' ? 0x6fb4c9 : 0x2f86c4;
+      const water = plastic(waterColor, { roughness: 0.1, metalness: 0.3 });
+      if (kind !== 'dune') {
+        const pool = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.08, 16), water);
+        pool.position.y = 0.05;
+        g.add(pool);
+      }
+      // Reeds and stones around the water.
+      const stone = rockStone;
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2 + 0.4;
+        const s = new THREE.Mesh(brick(1, 1, false), stone);
+        s.position.set(Math.cos(a) * 2.5 * PITCH, 0.04, Math.sin(a) * 2.5 * PITCH);
+        s.rotation.y = a;
+        g.add(s);
+      }
+      // Palms lean over the water; cacti stand off to one side.
+      for (let i = 0; i < 3; i++) {
+        const a = (i / 3) * Math.PI * 2 + 0.9;
+        const p = palm();
+        p.position.set(Math.cos(a) * 2.1 * PITCH, 0, Math.sin(a) * 2.1 * PITCH);
+        p.scale.setScalar(1.5);
+        p.rotation.y = a;
+        g.add(p);
+      }
+      const cactusSpots: [number, number][] = [
+        [-2.6, 1.8],
+        [2.2, -2.4],
+      ];
+      for (const [cx, cz] of cactusSpots) {
+        const c = cactus();
+        c.position.set(cx * PITCH, 0, cz * PITCH);
+        c.scale.setScalar(1.3);
+        g.add(c);
+      }
+      return g;
+    };
+
+    // Low-poly versions of the trees, for the far woods. The outer ring holds
+    // hundreds of them, and nobody looks at a stud from thirty units away.
+    const farPine = (): THREE.Group => {
+      const t = new THREE.Group();
+      t.add(new THREE.Mesh(post(1.4, 2.4), trunk));
+      const tiers: [number, number, number][] = [
+        [3.6, 1.2, 0],
+        [2.7, 2.1, 1],
+        [1.7, 3.0, 2],
+      ];
+      for (const [r, y, i] of tiers) {
+        const c = new THREE.Mesh(cone(r, 2.2), i % 2 ? leafDark : leaf);
+        c.position.y = y;
+        t.add(c);
+      }
+      return t;
+    };
+
+    const farBroadleaf = (): THREE.Group => {
+      const t = new THREE.Group();
+      t.add(new THREE.Mesh(post(1.3, 3.2), trunk));
+      const c1 = new THREE.Mesh(dome(3.2), leaf);
+      c1.position.y = 3.3 * PITCH;
+      const c2 = new THREE.Mesh(dome(2.2), leafDark);
+      c2.position.set(0.5 * PITCH, 4.3 * PITCH, 0.3 * PITCH);
+      t.add(c1, c2);
+      return t;
+    };
+
+    const farPalm = (): THREE.Group => {
+      const t = new THREE.Group();
+      const frond = plastic(theme.foliage, { roughness: 0.7 });
+      const bark = new THREE.Mesh(post(1.1, 7), trunk);
+      bark.rotation.z = 0.09;
+      t.add(bark);
+      for (let i = 0; i < 5; i++) {
+        const f = new THREE.Mesh(brick(4, 1, false), frond);
+        const a = (i / 5) * Math.PI * 2;
+        f.position.set(Math.cos(a) * 1.5 * PITCH, 7 * PITCH, Math.sin(a) * 1.5 * PITCH);
+        f.rotation.set(0, -a, -0.5);
+        t.add(f);
+      }
+      return t;
+    };
+
+    const farCactus = (): THREE.Group => {
+      const t = new THREE.Group();
+      const body = new THREE.Mesh(post(1.6, 4.4), leaf);
+      t.add(body);
+      for (const [y, out] of [
+        [1.1, 1],
+        [2.4, -1],
+      ] as [number, number][]) {
+        const arm = new THREE.Mesh(post(1, 1.8), leaf);
+        arm.position.set(out * 0.3, y, 0);
+        t.add(arm);
+      }
+      return t;
+    };
+
+    const farBurnt = (): THREE.Group => {
+      const t = new THREE.Group();
+      const tr = new THREE.Mesh(post(1.2, 5.4), trunk);
+      t.add(tr);
+      for (const [rot, len] of [
+        [0.7, 2.2],
+        [2.9, 1.7],
+      ] as [number, number][]) {
+        const limb = new THREE.Mesh(brick(1.4, 1.4, false), trunk);
+        limb.position.set(Math.cos(rot) * 1.4 * PITCH, len * PITCH, Math.sin(rot) * 1.4 * PITCH);
+        limb.rotation.set(0.4, rot, 0.5);
+        t.add(limb);
+      }
+      return t;
+    };
+
+    /** Studded trees for the belt close to the board, cheap ones for the woods. */
+    const treeMakers: Record<string, () => THREE.Group> = {
+      broadleaf,
+      pine,
+      palm,
+      cactus,
+      burnt,
+    };
+    const farTreeMakers: Record<string, () => THREE.Group> = {
+      broadleaf: farBroadleaf,
+      pine: farPine,
+      palm: farPalm,
+      cactus: farCactus,
+      burnt: farBurnt,
     };
 
     /** Giant broadleaf: a towering hero tree that anchors the forest skyline. */
@@ -2626,8 +3012,12 @@ export class Board {
 
     // Each call scatters one prop type. Ranges deliberately overlap so the
     // types interleave instead of stacking into visible depth bands.
+    //
+    // The scale factor matters as much as the count: a tree that is a sixth
+    // of the board's width reads as a sapling, and a forest of saplings is
+    // just a plain with specks on it.
     const band = (count: number, r0: number, r1: number, seed: number): Scatter[] =>
-      scatterClumps(count, r0, r1, seed + variant * 3.7);
+      scaleUp(scatterClumps(count, r0, r1, seed + variant * 3.7), PROP_SCALE);
 
     if (theme.terrain === 'grass') {
       // Forest: packed in three depth bands so the near ground is thick with
@@ -2655,6 +3045,88 @@ export class Board {
       bandOf('obsidian', obsidian, band(38, NEAR, HALF + 21, 2.9));
       bandOf('burnt', burnt, band(16, HALF + 17, FAR, 6.1));
     }
+
+    // ---------------------------------------------------------- the surround
+    // The land outside the baseplate. A belt of trees wraps the arena so the
+    // environment closes around it, woodland runs on behind that, and rocks,
+    // old ruins and little oasis patches fill the space between.
+    const spec = theme.surround;
+    const BELT_IN = HALF + 1.6;
+    const BELT_OUT = HALF + 6.4;
+    const GROVE_OUT = HALF + 15;
+    const [primary, secondary] = spec.beltTrees;
+
+    // The belt steps evenly around the arena, with the two tree kinds
+    // alternating, so the treeline is continuous instead of patchy.
+    const beltSpots = scaleUp(
+      scatterBelt(spec.belt, BELT_IN, BELT_OUT, 11 + variant * 1.3),
+      PROP_SCALE * 1.15,
+    );
+    const primarySpots: Scatter[] = [];
+    const secondarySpots: Scatter[] = [];
+    beltSpots.forEach((s, i) => (i % 2 ? secondarySpots : primarySpots).push(s));
+    bandOf(primary, treeMakers[primary], primarySpots);
+    bandOf(secondary, treeMakers[secondary], secondarySpots);
+
+    // Woodland behind the belt: clumps of mixed species, thinning with depth.
+    const groveA = scaleUp(
+      scatterClumps(Math.round(spec.grove * 0.62), BELT_OUT, GROVE_OUT, 21 + variant),
+      PROP_SCALE * 1.3,
+    );
+    const groveB = scaleUp(
+      scatterClumps(Math.round(spec.grove * 0.38), BELT_OUT + 2, GROVE_OUT + 2, 33 + variant),
+      PROP_SCALE * 1.3,
+    );
+    bandOf(primary, farTreeMakers[primary], groveA);
+    bandOf(secondary, farTreeMakers[secondary], groveB);
+
+    // The outer woods fade out towards the horizon ridges.
+    const outer = scaleUp(
+      scatterClumps(spec.outskirt, GROVE_OUT, FAR, 44 + variant),
+      PROP_SCALE * 1.6,
+    );
+    bandOf(primary, farTreeMakers[primary], outer);
+
+    // Rocks, old ruins and oasis patches, spread evenly so none of them hide
+    // behind another from the play camera.
+    const rockSpots = scaleUp(scatterBelt(spec.rocks, HALF + 3, HALF + 20, 55 + variant), PROP_SCALE * 0.9);
+    bandOf('rockCluster', rockCluster, rockSpots);
+    const ruinSpots = scaleUp(scatterBelt(spec.ruins, HALF + 5, HALF + 19, 66 + variant), PROP_SCALE);
+    bandOf('ancientRuin', ancientRuin, ruinSpots);
+    const patchSpots = scaleUp(scatterBelt(spec.patches, HALF + 17, FAR - 3, 77 + variant), PROP_SCALE * 0.8);
+    bandOf('groundPatch', groundPatch, patchSpots);
+
+    // A worn clearing around the baseplate, fading back into the terrain, so
+    // the forest starts at a believable distance instead of growing out of
+    // the kerb.
+    for (const [r0, r1, tint] of [
+      [HALF + 0.9, HALF + 3.4, 1],
+      [HALF + 3.4, HALF + 6.2, 0.5],
+    ] as [number, number, number][]) {
+      const worn = new THREE.Mesh(
+        new THREE.RingGeometry(r0, r1, 72, 1),
+        plastic(mixColor(spec.floor, theme.ground, tint), { roughness: 0.98 }),
+      );
+      worn.rotation.x = -Math.PI / 2;
+      worn.position.y = -0.494;
+      worn.receiveShadow = true;
+      decor.add(worn);
+    }
+
+    // Ambient occlusion under everything in the woods: the shadow map is too
+    // coarse out here to ground a tree, so each prop gets a soft blob of
+    // shade as well.
+    const ao = contactShadows([
+      { spots: primarySpots, radius: 0.95 },
+      { spots: secondarySpots, radius: 0.95 },
+      { spots: groveA, radius: 0.85 },
+      { spots: groveB, radius: 0.85 },
+      { spots: outer, radius: 0.8 },
+      { spots: rockSpots, radius: 0.85 },
+      { spots: ruinSpots, radius: 1.7 },
+      { spots: patchSpots, radius: 3.6 },
+    ]);
+    if (ao) decor.add(ao);
 
     // Arctic gets its fauna where the player will actually see it.
     if (theme.terrain === 'snow') {

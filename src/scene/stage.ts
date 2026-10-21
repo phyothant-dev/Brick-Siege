@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
-import { BOARD, HALF } from '../core/constants';
+import { HALF } from '../core/constants';
 
 export interface CameraRig {
   /** Point on the ground plane the camera orbits. */
@@ -41,6 +41,12 @@ export class Stage {
   onQualityChange: ((q: Quality, fps: number) => void) | null = null;
   private shakeTime = 0;
   private sun!: THREE.DirectionalLight;
+  private hemi!: THREE.HemisphereLight;
+  /** Sun colour at the top and the bottom of its drift. */
+  private readonly sunHigh = new THREE.Color(0xfff4e0);
+  private readonly sunLow = new THREE.Color(0xffd39a);
+  /** Clock for the slow drift of the sun across the sky. */
+  private sunTime = 0;
   private lastW = 0; private lastH = 0;
   private readonly canvas: HTMLCanvasElement;
 
@@ -62,7 +68,9 @@ export class Stage {
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(SKY);
-    this.scene.fog = new THREE.Fog(SKY, 34, 78);
+    // Fog starts beyond the tree belt, so the forest around the arena stays
+    // crisp and only the far woods fade into the horizon.
+    this.scene.fog = new THREE.Fog(SKY, 38, 92);
 
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.5, 220);
     this.applyCamera();
@@ -75,21 +83,29 @@ export class Stage {
   private buildLights(): void {
     const hemi = new THREE.HemisphereLight(0xdff1ff, 0x5d7a4a, 0.85);
     this.scene.add(hemi);
+    this.hemi = hemi;
 
     this.sun = new THREE.DirectionalLight(0xfff4e0, 2.4);
     this.sun.position.set(9, 15, 8);
     this.sun.castShadow = true;
-    this.sun.shadow.mapSize.set(2048, 2048);
-    const s = BOARD * 0.85;
+    // Phones get a smaller shadow map: the surround needs the coverage, but
+    // a 4k map is a lot of memory on a device that is already tight.
+    const big = this.isMobile() ? 2048 : 4096;
+    this.sun.shadow.mapSize.set(big, big);
+    // The shadow camera has to cover the whole surround — the tree belt, the
+    // outer woods and the ruins — not just the baseplate, or everything
+    // outside the board would float without a shadow. The board is small
+    // inside that area, so the map is big enough to keep its shadows sharp.
+    const s = HALF + 30;
     const cam = this.sun.shadow.camera;
     cam.left = -s;
     cam.right = s;
     cam.top = s;
     cam.bottom = -s;
     cam.near = 1;
-    cam.far = 48;
-    this.sun.shadow.bias = -0.0006;
-    this.sun.shadow.normalBias = 0.022;
+    cam.far = 150;
+    this.sun.shadow.bias = -0.0004;
+    this.sun.shadow.normalBias = 0.035;
     this.scene.add(this.sun);
     this.scene.add(this.sun.target);
 
@@ -111,6 +127,14 @@ export class Stage {
     pmrem.dispose();
   }
 
+  /** True on phones and tablets, where the frame budget is much tighter. */
+  private isMobile(): boolean {
+    return (
+      /Android|iPhone|iPad|iPod|IEMobile|Opera Mini|WebOS/i.test(navigator.userAgent) ||
+      window.innerWidth < 900
+    );
+  }
+
   /**
    * Render quality tiers. Phones and low-power GPUs get fewer pixels and no
    * shadow pass, which is where most of the frame cost lives on this scene.
@@ -118,14 +142,14 @@ export class Stage {
   setQuality(level: Quality): void {
     this.quality = level;
     const dpr = window.devicePixelRatio || 1;
-    const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent) || window.innerWidth < 900;
+    const isMobile = this.isMobile();
     const cap = isMobile
       ? 1
       : (level === 'high' ? 2 : level === 'medium' ? 1.25 : 1);
     this.renderer.setPixelRatio(Math.min(dpr, cap, isMobile ? 1.75 : 2));
     this.renderer.shadowMap.enabled = level !== 'low';
     if (level !== 'low') {
-      const size = level === 'high' ? 2048 : 1024;
+      const size = level === 'high' && !isMobile ? 4096 : 2048;
       if (this.sun.shadow.mapSize.x !== size) {
         this.sun.shadow.mapSize.set(size, size);
         // Force the shadow map to be rebuilt at the new resolution.
@@ -259,9 +283,25 @@ export class Stage {
       this.camera.position.z += Math.sin(this.shakeTime * 3.1) * a * 0.5;
     }
 
-    this.sun.position.set(this.rig.target.x + 9, 15, this.rig.target.z + 8);
-    this.sun.target.position.set(this.rig.target.x, 0, this.rig.target.z);
+    // The sun drifts slowly across the sky. Nothing else in the scene moves,
+    // so the shadows sliding through the forest are what make the board feel
+    // lit by a real light instead of a fixed lamp.
+    this.sunTime += dt;
+    const az = 0.844 + Math.sin(this.sunTime * 0.045) * 0.26;
+    const elev = 0.9 + Math.sin(this.sunTime * 0.028 + 1.2) * 0.11;
+    const R = 19.2;
+    this.sun.position.set(
+      Math.sin(az) * Math.cos(elev) * R,
+      Math.sin(elev) * R,
+      Math.cos(az) * Math.cos(elev) * R,
+    );
+    this.sun.target.position.set(0, 0, 0);
     this.sun.target.updateMatrixWorld();
+    // Lower sun, warmer light; higher sun, cooler and brighter.
+    const warm = 1 - (Math.sin(this.sunTime * 0.028 + 1.2) * 0.5 + 0.5);
+    this.sun.color.lerpColors(this.sunLow, this.sunHigh, warm);
+    this.sun.intensity = 2.4 - warm * 0.22;
+    this.hemi.intensity = 0.85 - warm * 0.06;
   }
 
   resize(): void {
