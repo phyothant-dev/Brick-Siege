@@ -83,7 +83,7 @@ OTHER KEYS
 --------------------------------------------------------------------------------
 
 YOUR GOAL
-  Survive all 25 waves with fortress health above zero. The fortress has 20 HP.
+  Survive all 25 waves with fortress health above zero. The fortress has 30 HP.
   Each creature that reaches the gate removes its "leak" value, so letting a
   Stud Slime through costs 1, a Brick Demon costs 3, and an Overlord costs 10.
 
@@ -219,7 +219,7 @@ COMBINING RANGE
 
 YOUR GOAL
   Break the fortress before the 300 second clock runs out. The fortress has
-  20 HP. Every creature that reaches the gate removes its leak value.
+  30 HP. Every creature that reaches the gate removes its leak value.
 
 WHERE YOU CAN DEPLOY - LOOK FOR THE ARROWS
   At the start of each lane there is a floating blue arrow pointing down at the

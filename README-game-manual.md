@@ -48,7 +48,7 @@ The fortress does not fight back on its own — only its towers do.
 | 2 | The four lane entrances light up with cyan rings |
 | 3 | Tap a lit tile to send that unit in from that lane |
 | 4 | Bricks come in at 5 a second, so you are never stranded with an empty board |
-| 5 | Knock the keep from 20 HP to 0 |
+| 5 | Knock the keep from 30 HP to 0 |
 
 **You can only deploy on the first few tiles of a lane** — the entrance zone. Dropping a
 unit next to the fortress would skip the whole puzzle, so units always have to walk in
@@ -300,13 +300,14 @@ you select it, and a tower at 0 hull is destroyed and its cell becomes empty.
 
 | Attacker | From wave | Range | Damage | Rate | Blast | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| **BOW BRICK** | 9 | 3.4 studs | 5 | 1.50s | — | Single arrow, steady poke |
-| **GUN BRICK** | 13 | 4.2 studs | 4 | 0.55s | — | Fast weak rounds, never stops |
+| **BOW BRICK** | 15 | 3.4 studs | 5 | 1.50s | — | Single arrow, steady poke |
+| **GUN BRICK** | 18 | 4.2 studs | 4 | 0.55s | — | Fast weak rounds, never stops |
 | **BRICK CATAPULT** | 16 | 5.2 studs | 16 | 2.60s | 1.1 studs | Lobs a boulder; splashes every tower nearby |
 
-Tower hull by tier: Shooter 100 / 165, Mortar 85 / 136, Freezer 110 / 176, Coil 80 / 128,
-Sprayer 95 / 152, Long Shot 70 / 112, Cluster 95 / 152, Beacon 120 / 192, Acid Rain 90 /
-144, Rail Gun 75 / 120, Buckshot 105 / 168, Deep Freeze 100 / 160 (tier 1 / tier 3).
+Tower hull by tier: Shooter 100 / 160 / 220, Mortar 85 / 136 / 187, Freezer 110 / 176 /
+242, Coil 80 / 128 / 176, Sprayer 95 / 152 / 209, Long Shot 70 / 112 / 154, Cluster 95 /
+152 / 209, Beacon 120 / 192 / 264, Acid Rain 90 / 144 / 198, Rail Gun 75 / 120 / 165,
+Buckshot 105 / 168 / 231, Deep Freeze 100 / 160 / 220 (tier 1 / tier 2 / tier 3).
 Tier 3 towers are far tougher, so a finished combined tower is a safe place to build
 behind.
 

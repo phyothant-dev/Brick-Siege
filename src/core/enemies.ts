@@ -208,21 +208,10 @@ export const ENEMY_ORDER: EnemyId[] = [
   'catapult',
 ];
 
-/** Wave index (1-based) at which each enemy type starts appearing. */
-export const UNLOCK_WAVE: Record<EnemyId, number> = {
-  slime: 1,
-  skeleton: 2,
-  zombie: 5,
-  ghost: 7,
-  demon: 10,
-  overlord: 20,
-  archer: 9,
-  gunner: 13,
-  brute: 11,
-  wisp: 8,
-  golem: 15,
-  catapult: 16,
-};
+/**
+ * Wave index (1-based) at which each enemy type starts appearing lives in
+ * `waves.ts`, derived from the campaign list so it cannot drift from it.
+ */
 
 /** Enemy health grows every wave so late waves stay threatening. */
 export function waveHpScale(wave: number): number {

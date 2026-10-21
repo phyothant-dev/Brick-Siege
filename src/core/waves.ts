@@ -1,4 +1,4 @@
-import type { Wave } from './types';
+import type { EnemyId, Wave } from './types';
 
 const g = (type: Wave['groups'][number]['type'], count: number, gap: number, delay = 0) => ({
   type,
@@ -66,3 +66,31 @@ export const WAVES: Wave[] = [
 ];
 
 export const TOTAL_WAVES = WAVES.length;
+
+/**
+ * Wave index (1-based) at which each enemy type first appears, derived from the
+ * wave list itself. The codex quotes these numbers, so they have to agree with
+ * the campaign that actually spawns.
+ */
+export const UNLOCK_WAVE: Record<EnemyId, number> = (() => {
+  const first: Record<EnemyId, number> = {
+    slime: Number.MAX_SAFE_INTEGER,
+    skeleton: Number.MAX_SAFE_INTEGER,
+    zombie: Number.MAX_SAFE_INTEGER,
+    ghost: Number.MAX_SAFE_INTEGER,
+    demon: Number.MAX_SAFE_INTEGER,
+    overlord: Number.MAX_SAFE_INTEGER,
+    archer: Number.MAX_SAFE_INTEGER,
+    gunner: Number.MAX_SAFE_INTEGER,
+    brute: Number.MAX_SAFE_INTEGER,
+    wisp: Number.MAX_SAFE_INTEGER,
+    golem: Number.MAX_SAFE_INTEGER,
+    catapult: Number.MAX_SAFE_INTEGER,
+  };
+  WAVES.forEach((wave, i) => {
+    for (const group of wave.groups) {
+      first[group.type] = Math.min(first[group.type], i + 1);
+    }
+  });
+  return first;
+})();

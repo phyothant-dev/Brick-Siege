@@ -12,11 +12,11 @@ import {
 } from '../core/constants';
 import { generateLayout } from '../core/maps';
 import type { Layout, MapId } from '../core/maps';
-import { ENEMIES, UNLOCK_WAVE, resistanceLabel } from '../core/enemies';
+import { ENEMIES, resistanceLabel } from '../core/enemies';
 import { on, sfx } from '../core/events';
 import { MAX_TIER, TOWER_ORDER, TOWERS, tierSpec, towerDps } from '../core/towers';
 import type { ElementId, EnemyId, TowerId } from '../core/types';
-import { TOTAL_WAVES } from '../core/waves';
+import { TOTAL_WAVES, UNLOCK_WAVE } from '../core/waves';
 import {
   ATTACKER_COST,
   ATTACKER_KEY_LABELS,
