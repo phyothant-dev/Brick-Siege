@@ -15,6 +15,7 @@ import { Ui } from './ui/ui';
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement | null;
 
 function fatal(message: string, detail?: string): void {
+  document.getElementById('splash')?.remove();
   const body = document.getElementById('ov-body');
   const title = document.getElementById('ov-title');
   const tag = document.getElementById('ov-tag');
@@ -55,6 +56,9 @@ function boot(target: HTMLCanvasElement): void {
     ui = new Ui(game);
     controls = new Controls(target, game);
     controls.pauseToggle = () => ui.togglePause();
+    // The menu is up now — drop the static splash in the same tick, so the
+    // next paint already shows the menu over the scene with no bare flash.
+    document.getElementById('splash')?.remove();
   } catch (error) {
     console.error(error);
     fatal('The scene failed to initialise.', String(error));

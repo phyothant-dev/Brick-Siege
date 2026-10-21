@@ -87,6 +87,9 @@ export class Ui {
   private codexEnemies = $('codex-enemies');
 
   private overlayMode: 'menu' | 'paused' | 'won' | 'lost' = 'menu';
+  // The boot menu must land fully formed on the same paint the scene first
+  // renders; entrance animations stay reserved for every later open.
+  private overlayIntro = true;
   private lastThreat = '';
 
   constructor(game: Game) {
@@ -828,11 +831,20 @@ export class Ui {
   showOverlay(mode: 'menu' | 'paused' | 'won' | 'lost' | null): void {
     if (!mode) {
       this.overlay.classList.add('hidden');
+      // Restore the normal scrim fade for every later open (pause, results,
+      // menu return); the boot show opted out below.
+      this.overlay.style.animation = '';
       this.overlayMode = 'menu';
       return;
     }
 
     this.overlayMode = mode;
+    // Suppress the scrim's fade-in on the very first (boot) show: animating
+    // from transparent would expose the freshly rendered background for a few
+    // frames before the menu arrives. Later shows keep the fade.
+    const intro = this.overlayIntro;
+    this.overlayIntro = false;
+    if (intro) this.overlay.style.animation = 'none';
     this.overlay.classList.remove('hidden');
     // Only the menu needs the wide frame; pause and result screens are a
     // handful of lines and looked lost inside it.
@@ -863,7 +875,7 @@ export class Ui {
         </ul>`;
       this.ovPrimary.textContent = SIDE_CTA[this.game.side];
       this.refreshMapCards();
-      overlayEnter(this.overlayBox);
+      if (!intro) overlayEnter(this.overlayBox);
       cardsEnter(this.overlayBox, '.map-card, .theme-btn, .side-btn');
       return;
     }

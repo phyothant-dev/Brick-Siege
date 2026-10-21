@@ -79,6 +79,37 @@ body {
   cursor: grabbing;
 }
 
+/* ================= LOADING SPLASH =================
+   Static HTML paints this before any JS runs; main.ts removes it the same
+   tick the menu overlay becomes visible. */
+#splash {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  background: var(--lego-black);
+}
+
+.splash__title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--lego-yellow);
+  -webkit-text-stroke: 1px #000;
+  text-shadow: 4px 4px 0 var(--lego-red);
+}
+
+.splash__tag {
+  font-family: 'Ubuntu Mono', monospace;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  font-size: 0.7rem;
+  color: var(--lego-white);
+  opacity: 0.7;
+}
+
 /* ================= SHARED BRICK PANEL ================= */
 .panel {
   background: var(--panel-bg);
