@@ -30,13 +30,13 @@ export const SIDE_INFO: Record<Side, SideInfo> = {
  * without waiting, but not enough to buy the army outright: the opening has to
  * come off the defence, not the clock.
  */
-export const ATTACKER_INCOME = 10;
+export const ATTACKER_INCOME = 5;
 
 /**
  * Bricks the attacker starts with: enough for a first push, not enough to buy
  * the army outright. The opening has to come off the defence, not the clock.
  */
-export const ATTACKER_START_GOLD = 260;
+export const ATTACKER_START_GOLD = 170;
 
 /**
  * Seconds the attacker gets to break the fortress. The defender has a wave

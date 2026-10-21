@@ -47,7 +47,7 @@ The fortress does not fight back on its own — only its towers do.
 | 1 | Pick a creature from the palette along the bottom (or press its number key) |
 | 2 | The four lane entrances light up with cyan rings |
 | 3 | Tap a lit tile to send that unit in from that lane |
-| 4 | Bricks come in at 10 a second, so you are never stranded with an empty board |
+| 4 | Bricks come in at 5 a second, so you are never stranded with an empty board |
 | 5 | Knock the keep from 20 HP to 0 |
 
 **You can only deploy on the first few tiles of a lane** — the entrance zone. Dropping a
@@ -231,8 +231,8 @@ up — a single 1500-HP brick that takes **10** from the keep if it gets through
   capped at ×1.6 by the end). A greedy "fill every stud" board is punished; a focused
   board is cheaper.
 
-**As the attacker** the economy is different: you start with **260 bricks** and earn
-**10 bricks per second**, so a full five-minute run is worth about **3260 bricks** from
+**As the attacker** the economy is different: you start with **170 bricks** and earn
+**5 bricks per second**, so a full five-minute run is worth about **1670 bricks** from
 the clock alone. That is enough to field a serious army, but the clock is only half the
 story: there is no wave bonus and no early-call payout, because there are no waves to
 call. **Killing towers is the attacker's other income** — a bounty of **45 bricks**, or

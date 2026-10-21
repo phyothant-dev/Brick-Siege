@@ -700,9 +700,12 @@ export class Game {
     if (!this.runStarted) return;
     if (this.side !== 'attacker' || this.phase !== 'wave') return;
     this.incomeClock += dt;
-    if (this.incomeClock >= 1) {
-      const whole = Math.floor(this.incomeClock);
-      this.incomeClock -= whole;
+    // The epsilon absorbs float drift in the dt sum: on the frame that ends a
+    // full run the accumulator can land a hair under the next whole second and
+    // cost the last tick of income.
+    const whole = Math.floor(this.incomeClock + 1e-6);
+    if (whole >= 1) {
+      this.incomeClock = Math.max(0, this.incomeClock - whole);
       this.state.gold += ATTACKER_INCOME * whole;
       emit('hud:changed');
     }

@@ -237,8 +237,8 @@ WHERE YOU CAN DEPLOY - LOOK FOR THE ARROWS
   right next to the fortress would skip the entire puzzle.
 
 MONEY
-  You start with 260 bricks and earn 10 bricks every second, so the clock is
-  also your income. A full five-minute run is worth about 3260 bricks from
+  You start with 170 bricks and earn 5 bricks every second, so the clock is
+  also your income. A full five-minute run is worth about 1670 bricks from
   the clock alone, plus whatever you loot off the defence.
 
 REWARDS FOR BREAKING THINGS
@@ -371,14 +371,14 @@ DEFENDING
 ATTACKING
   - Spread across gates. The defender has to cover all of them, and on
     CROSSFIRE and FOUR PATHS that is a lot of ground.
-  - The 45 brick bounty is real money. Two Gun Brick kills early can pay for
-    the Overlord.
+  - The 45 brick bounty is real money: every tower you break is bricks for
+    the next push, on top of the 5 a second the clock hands you.
   - Brick Catapults outrange most towers, so a pair of them can flatten a
     defence before your melee units even arrive. Screen them with cheap Slimes.
   - Overlords cost 10 fortress damage each. Three of them end the run, but
     they are slow, so a Freezer-heavy defence will hold them a long time.
-  - Watch the clock. At 10 bricks a second, a 300 second run is worth roughly
-    3260 bricks of spending plus whatever you loot. Do not sit on it.
+  - Watch the clock. At 5 bricks a second, a 300 second run is worth roughly
+    1670 bricks of spending plus whatever you loot. Do not sit on it.
 
 
 --------------------------------------------------------------------------------
