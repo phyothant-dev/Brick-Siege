@@ -237,9 +237,9 @@ WHERE YOU CAN DEPLOY - LOOK FOR THE ARROWS
   right next to the fortress would skip the entire puzzle.
 
 MONEY
-  You start with 160 bricks and earn 3 bricks every second, so the clock is
-  also your income. Every second you spend thinking is a creature you cannot
-  afford.
+  You start with 260 bricks and earn 10 bricks every second, so the clock is
+  also your income. A full five-minute run is worth about 3260 bricks from
+  the clock alone, plus whatever you loot off the defence.
 
 REWARDS FOR BREAKING THINGS
   Every defender tower you destroy pays you 45 bricks. If it was a merged
@@ -377,8 +377,8 @@ ATTACKING
     defence before your melee units even arrive. Screen them with cheap Slimes.
   - Overlords cost 10 fortress damage each. Three of them end the run, but
     they are slow, so a Freezer-heavy defence will hold them a long time.
-  - Watch the clock. At 3 bricks a second, a 300 second run is worth roughly
-    900 bricks of spending plus whatever you loot. Do not sit on it.
+  - Watch the clock. At 10 bricks a second, a 300 second run is worth roughly
+    3260 bricks of spending plus whatever you loot. Do not sit on it.
 
 
 --------------------------------------------------------------------------------

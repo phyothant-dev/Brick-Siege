@@ -22,10 +22,21 @@ function part(
   return m;
 }
 
+/**
+ * Two eyes set into `parent`. They are placed just proud of the surface they
+ * are drilled into, so wide heads do not swallow them whole.
+ */
 function eyes(parent: THREE.Object3D, y: number, spread: number, color: number, glow = 0): void {
+  let front = 0.16;
+  const mesh = parent as THREE.Mesh;
+  if (mesh.isMesh && mesh.geometry) {
+    mesh.geometry.computeBoundingBox();
+    const bb = mesh.geometry.boundingBox;
+    if (bb) front = bb.max.z + 0.015;
+  }
   for (const side of [-1, 1]) {
     const e = part(sphere(0.7), color, glow ? { emissive: color, glow } : {});
-    e.position.set(side * spread, y, 0.16);
+    e.position.set(side * spread, y, front);
     e.scale.set(1, 1.25, 0.6);
     e.castShadow = false;
     parent.add(e);
@@ -40,14 +51,21 @@ function buildSlime(spec: EnemySpec): THREE.Group {
   body.name = 'body';
 
   const shell = part(dome(4), spec.color, { transparent: true, opacity: 0.72 });
+  shell.name = 'shell';
   shell.scale.set(1, 0.86, 1);
+  // A hair above the plate so the wobbling rim never sinks into the board.
+  shell.position.y = 0.01;
   body.add(shell);
 
-  const inner = part(sphere(2.6), spec.accent, { transparent: true, opacity: 0.55 });
-  inner.position.y = 0.02;
+  // The nucleus has to stay inside the dome — an oversized core hangs out of
+  // the belly and through the baseplate.
+  const inner = part(sphere(1.6), spec.accent, { transparent: true, opacity: 0.55 });
+  inner.name = 'core';
+  inner.position.y = 0.21;
   body.add(inner);
 
   const cap = part(roundBrick(1.6, PLATE_H), spec.accent, { transparent: true, opacity: 0.6 });
+  cap.name = 'cap';
   cap.position.y = 0.34;
   body.add(cap);
 
@@ -71,7 +89,7 @@ function buildSkeleton(spec: EnemySpec): THREE.Group {
 
   const legs = new THREE.Group();
   for (const side of [-1, 1]) {
-    const leg = part(limbGeometry(0.28, 0.1), spec.color);
+    const leg = part(limbGeometry(0.32, 0.1), spec.color);
     leg.name = side < 0 ? 'legL' : 'legR';
     leg.position.set(side * 0.11, 0.32, 0);
     legs.add(leg);
@@ -125,7 +143,7 @@ function buildZombie(spec: EnemySpec): THREE.Group {
   body.name = 'body';
 
   for (const side of [-1, 1]) {
-    const leg = part(limbGeometry(0.26, 0.13), spec.accent);
+    const leg = part(limbGeometry(0.3, 0.13), spec.accent);
     leg.name = side < 0 ? 'legL' : 'legR';
     leg.position.set(side * 0.12, 0.3, 0);
     g.add(leg);
@@ -148,13 +166,7 @@ function buildZombie(spec: EnemySpec): THREE.Group {
   head.name = 'head';
   body.add(head);
 
-  for (const side of [-1, 1]) {
-    const eye = part(sphere(0.55), LEGO.brightRed, { emissive: LEGO.red, glow: 1.2 });
-    eye.position.set(side * 0.09, HEAD_Y + 0.12, 0.17);
-    eye.scale.set(1, 1.1, 0.6);
-    eye.castShadow = false;
-    body.add(eye);
-  }
+  eyes(head, 0.12, 0.09, LEGO.brightRed, 1.2);
 
   // Arms held out in front, zombie style.
   for (const side of [-1, 1]) {
@@ -181,11 +193,13 @@ function buildGhost(spec: EnemySpec): THREE.Group {
   body.name = 'body';
 
   const shell = part(sphere(4), spec.color, { transparent: true, opacity: 0.42 });
+  shell.name = 'shell';
   shell.scale.set(1, 1.12, 0.86);
   shell.position.y = 0.42;
   body.add(shell);
 
   const tail = part(cone(3.4, 3.4), spec.color, { transparent: true, opacity: 0.34 });
+  tail.name = 'tail';
   tail.position.y = 0.14;
   tail.rotation.x = Math.PI;
   body.add(tail);
@@ -193,14 +207,15 @@ function buildGhost(spec: EnemySpec): THREE.Group {
   for (let i = 0; i < 3; i++) {
     const wisp = part(cone(0.9, 1.6), spec.accent, { transparent: true, opacity: 0.4 });
     wisp.name = `wisp${i}`;
-    wisp.position.set((i - 1) * 0.16, -0.1, 0);
+    wisp.position.set((i - 1) * 0.16, 0, 0);
     wisp.rotation.x = Math.PI;
     body.add(wisp);
   }
 
-  eyes(body, 0.5, 0.13, LEGO.black);
+  eyes(shell, 0.08, 0.13, LEGO.black);
   const mouth = part(brickGeometry(2, 1, 0.12), LEGO.black, { transparent: true, opacity: 0.8 });
-  mouth.position.set(0, 0.34, 0.2);
+  mouth.name = 'mouth';
+  mouth.position.set(0, 0.34, 0.38);
   body.add(mouth);
 
   g.add(body);
@@ -213,7 +228,7 @@ function buildDemon(spec: EnemySpec): THREE.Group {
   body.name = 'body';
 
   for (const side of [-1, 1]) {
-    const leg = part(limbGeometry(0.3, 0.16), spec.accent);
+    const leg = part(limbGeometry(0.34, 0.16), spec.accent);
     leg.name = side < 0 ? 'legL' : 'legR';
     leg.position.set(side * 0.15, 0.34, 0);
     g.add(leg);
@@ -288,7 +303,7 @@ function buildOverlord(spec: EnemySpec): THREE.Group {
   body.name = 'body';
 
   for (const side of [-1, 1]) {
-    const leg = part(limbGeometry(0.34, 0.19), LEGO.black);
+    const leg = part(limbGeometry(0.38, 0.19), LEGO.black);
     leg.name = side < 0 ? 'legL' : 'legR';
     leg.position.set(side * 0.18, 0.38, 0);
     g.add(leg);
@@ -330,8 +345,9 @@ function buildOverlord(spec: EnemySpec): THREE.Group {
     body.add(arm);
   }
 
-  const cape = part(plate(1, 10), LEGO.red, { transparent: true, opacity: 0.8 });
-  cape.position.set(0, 0.42, -0.32);
+  const cape = part(plate(1, 7), LEGO.red, { transparent: true, opacity: 0.8 });
+  cape.name = 'cape';
+  cape.position.set(0, 0.48, -0.32);
   cape.rotation.set(Math.PI / 2, 0, 0);
   cape.scale.set(1.4, 1.1, 1);
   body.add(cape);
@@ -349,44 +365,68 @@ function buildArcher(spec: EnemySpec): THREE.Group {
   const body = new THREE.Group();
   body.name = 'body';
 
-  const legs = part(brick(6, 4, false), 0x3c4a38);
-  legs.position.y = 0.3;
-  body.add(legs);
+  // Legs: hips at 0.28 so the feet land on the baseplate.
+  for (const side of [-1, 1]) {
+    const leg = part(limbGeometry(0.28, 0.13), 0x3c4a38);
+    leg.name = side < 0 ? 'legL' : 'legR';
+    leg.position.set(side * 0.13, 0.28, 0);
+    g.add(leg);
+  }
+
+  const hips = part(brick(4, 3, false), 0x2f6d3f);
+  hips.name = 'hips';
+  hips.position.y = 0.28;
+  body.add(hips);
 
   const torso = part(brick(7, 6, false), spec.color);
-  torso.position.y = 0.78;
+  torso.position.y = 0.43;
   torso.name = 'torso';
   body.add(torso);
 
   const head = part(brick(5, 4, false), 0xe8c39a);
-  head.position.y = 1.24;
+  head.position.y = 0.58;
   head.name = 'head';
   body.add(head);
-  eyes(head, 0.02, 0.1, 0x1a1a1a);
+  eyes(head, 0.05, 0.1, 0x1a1a1a);
 
-  // Hood.
+  // Hood: sits straight on the head, wide enough to cover it.
   const hood = part(cone(3.2, 3.4), spec.color);
-  hood.position.set(0, 1.55, -0.12);
+  hood.name = 'hood';
+  hood.position.set(0, 0.73, -0.12);
   body.add(hood);
 
-  // Bow: a torus arc plus a string, held forward.
+  // Arms reaching for the bow. They sit just outside the torso slab so they
+  // read as arms instead of vanishing into the chest.
+  for (const side of [-1, 1]) {
+    const arm = part(limbGeometry(0.26, 0.1), spec.color);
+    arm.name = side < 0 ? 'armL' : 'armR';
+    arm.position.set(side * 0.47, 0.55, 0.18);
+    arm.rotation.x = -1.15;
+    arm.rotation.z = -side * 0.12;
+    body.add(arm);
+  }
+
+  // Bow: a half-ring arc plus its string. The arc is baked into the geometry
+  // so the string meets the tips exactly and the bow keeps a clean profile.
   const bow = new THREE.Group();
   bow.name = 'weapon';
-  const limb = part(new THREE.TorusGeometry(0.52, 0.07, 6, 14, Math.PI * 1.1), spec.accent);
-  limb.rotation.z = Math.PI * 0.95;
+  const bowGeo = new THREE.TorusGeometry(0.38, 0.055, 6, 16, Math.PI);
+  bowGeo.rotateZ(-Math.PI / 2);
+  const limb = part(bowGeo, spec.accent);
   bow.add(limb);
   const stringGeo = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(0.05, -0.5, 0),
-    new THREE.Vector3(0.05, 0, 0.24),
-    new THREE.Vector3(0.05, 0.5, 0),
+    new THREE.Vector3(0, -0.38, 0),
+    new THREE.Vector3(-0.07, 0, 0),
+    new THREE.Vector3(0, 0.38, 0),
   ]);
   bow.add(new THREE.Line(stringGeo, new THREE.LineBasicMaterial({ color: 0xf2f2f2 })));
-  bow.position.set(0.42, 0.86, 0.3);
+  bow.position.set(0.44, 0.55, 0.42);
   body.add(bow);
 
   // Quiver on the back.
   const quiver = part(post(1.1, 1.6), 0x6b4a2a);
-  quiver.position.set(-0.28, 1.0, -0.28);
+  quiver.name = 'quiver';
+  quiver.position.set(-0.28, 0.58, -0.3);
   quiver.rotation.z = 0.3;
   body.add(quiver);
 
@@ -399,26 +439,39 @@ function buildGunner(spec: EnemySpec): THREE.Group {
   const body = new THREE.Group();
   body.name = 'body';
 
-  const legs = part(brick(6, 4, false), 0x2b333d);
-  legs.position.y = 0.3;
-  body.add(legs);
+  // Legs: hips at 0.28 so the feet land on the baseplate.
+  for (const side of [-1, 1]) {
+    const leg = part(limbGeometry(0.28, 0.14), 0x2b333d);
+    leg.name = side < 0 ? 'legL' : 'legR';
+    leg.position.set(side * 0.16, 0.28, 0);
+    g.add(leg);
+  }
+
+  const hips = part(brick(4, 3, false), 0x2b333d);
+  hips.name = 'hips';
+  hips.position.y = 0.28;
+  body.add(hips);
 
   const torso = part(brick(8, 6, false), spec.color);
-  torso.position.y = 0.8;
+  torso.position.y = 0.43;
   torso.name = 'torso';
   body.add(torso);
 
-  const head = part(roundBrick(3, 0.9), 0xd9b58c);
-  head.position.y = 1.28;
+  // Head: a squat drum, with the helmet capping it instead of sinking into it.
+  const head = part(roundBrick(4, 0.4), 0xd9b58c);
+  head.position.y = 0.58;
   head.name = 'head';
   body.add(head);
-  eyes(head, 0.1, 0.11, 0x1a1a1a);
+  eyes(head, 0.2, 0.1, 0x1a1a1a);
 
-  const helmet = part(dome(3.1), spec.accent);
-  helmet.position.y = 1.42;
+  const helmet = part(dome(2.4), spec.accent);
+  helmet.name = 'helmet';
+  helmet.position.y = 0.98;
   body.add(helmet);
 
-  // Rifle held across the body.
+  // Rifle shouldered across the body. The grip sits in the right hand and
+  // the butt-stock rides above the shoulder so neither part is swallowed by
+  // the torso slab.
   const weapon = new THREE.Group();
   weapon.name = 'weapon';
   const barrel = part(post(0.9, 2.6), 0x22262b);
@@ -426,14 +479,26 @@ function buildGunner(spec: EnemySpec): THREE.Group {
   barrel.position.set(0, 0, 0.5);
   weapon.add(barrel);
   const stock = part(brick(4, 2, false), 0x5a4028);
-  stock.position.set(0, -0.06, -0.35);
+  stock.position.set(0, 0.12, -0.28);
   weapon.add(stock);
-  weapon.position.set(0.34, 0.86, 0.3);
+  weapon.position.set(0.4, 0.48, 0.34);
+  weapon.rotation.x = -0.12;
   body.add(weapon);
 
-  const ammoBandolier = part(plate(9, 4), spec.accent);
-  ammoBandolier.position.set(0, 0.9, 0.02);
-  ammoBandolier.rotation.set(Math.PI / 2, 0, 0.5);
+  for (const side of [-1, 1]) {
+    const arm = part(limbGeometry(0.28, 0.11), spec.color);
+    arm.name = side < 0 ? 'armL' : 'armR';
+    arm.position.set(side * 0.53, 0.62, 0.16);
+    arm.rotation.x = -1.0;
+    arm.rotation.z = -side * 0.4;
+    body.add(arm);
+  }
+
+  // Chest strap.
+  const ammoBandolier = part(plate(7, 1), spec.accent);
+  ammoBandolier.name = 'bandolier';
+  ammoBandolier.position.set(0, 0.5, 0.365);
+  ammoBandolier.rotation.set(Math.PI / 2, 0, 0);
   body.add(ammoBandolier);
 
   g.add(body);
@@ -448,23 +513,25 @@ function buildBrute(spec: EnemySpec): THREE.Group {
 
   const legs = new THREE.Group();
   for (const side of [-1, 1]) {
-    const leg = part(limbGeometry(0.36, 0.14), spec.color);
+    const leg = part(limbGeometry(0.38, 0.14), spec.color);
     leg.name = side < 0 ? 'legL' : 'legR';
-    leg.position.set(side * 0.15, 0.3, 0);
+    leg.position.set(side * 0.15, 0.38, 0);
     legs.add(leg);
   }
   g.add(legs);
 
   const hips = part(brick(4, 3, false), spec.accent);
-  hips.position.y = 0.3;
+  hips.name = 'hips';
+  hips.position.y = 0.38;
   body.add(hips);
 
   const torso = part(brick(5, 3, false), spec.color);
-  torso.position.y = 0.5;
+  torso.position.y = 0.53;
+  torso.name = 'torso';
   body.add(torso);
 
   const chest = part(plate(5, 2), spec.accent);
-  chest.position.set(0, 0.56, 0.16);
+  chest.position.set(0, 0.59, 0.16);
   body.add(chest);
 
   for (const side of [-1, 1]) {
@@ -474,20 +541,20 @@ function buildBrute(spec: EnemySpec): THREE.Group {
 
     const arm = part(limbGeometry(0.42, 0.16), spec.color);
     arm.name = side < 0 ? 'armL' : 'armR';
-    arm.position.set(side * 0.32, 0.5, 0);
+    arm.position.set(side * 0.32, 0.62, 0);
     arm.rotation.z = side * 0.12;
     body.add(arm);
   }
 
   const helm = part(roundBrick(3.4, 0.22), spec.color);
-  helm.position.y = 0.78;
+  helm.position.y = 0.68;
   helm.name = 'head';
   body.add(helm);
 
   const visor = part(brick(4, 1, false), LEGO.black);
-  visor.position.set(0, 0.79, 0.14);
+  visor.position.set(0, 0.69, 0.18);
   body.add(visor);
-  eyes(body, 0.79, 0.09, LEGO.orange, 0.6);
+  eyes(helm, 0.11, 0.09, LEGO.orange, 0.6);
 
   g.add(body);
   return g;
@@ -505,18 +572,21 @@ function buildWisp(spec: EnemySpec): THREE.Group {
     emissive: spec.accent,
     glow: 1.4,
   });
+  shell.name = 'shell';
   body.add(shell);
 
   const core = part(sphere(1.4), spec.accent, { emissive: spec.accent, glow: 1.6 });
+  core.name = 'core';
   core.castShadow = false;
   body.add(core);
 
-  eyes(body, 0.05, 0.09, LEGO.white);
+  eyes(shell, 0.02, 0.09, LEGO.white);
   for (const side of [-1, 1]) {
     const pupil = part(sphere(0.4), LEGO.black);
-    pupil.position.set(side * 0.09, 0.05, 0.15);
+    pupil.position.set(side * 0.09, 0.02, 0.4);
+    pupil.scale.set(1, 1.2, 0.6);
     pupil.castShadow = false;
-    body.add(pupil);
+    shell.add(pupil);
   }
 
   for (let i = 0; i < 3; i++) {
@@ -537,40 +607,53 @@ function buildGolem(spec: EnemySpec): THREE.Group {
   const body = new THREE.Group();
   body.name = 'body';
 
+  // Legs: a stubby shin with a brick foot that actually touches the ground.
   const legs = new THREE.Group();
   for (const side of [-1, 1]) {
-    const leg = part(brick(3, 3, false), spec.color);
+    const leg = part(limbGeometry(0.4, 0.17), spec.color);
     leg.name = side < 0 ? 'legL' : 'legR';
-    leg.position.set(side * 0.18, 0.28, 0);
+    leg.position.set(side * 0.18, 0.42, 0);
+    // A narrow foot: a wide one would swing a corner under the baseplate.
+    const foot = part(brick(3, 2, false), spec.accent);
+    foot.position.set(0, -0.4, 0.04);
+    leg.add(foot);
     legs.add(leg);
   }
   g.add(legs);
 
-  const torso = part(brick(6, 4, false), spec.color);
-  torso.position.y = 0.56;
+  const hips = part(brick(6, 4, false), spec.color);
+  hips.name = 'hips';
+  hips.position.y = 0.42;
+  body.add(hips);
+
+  const torso = part(brickGeometry(6, 4, 0.34), spec.color);
+  torso.position.y = 0.57;
+  torso.name = 'torso';
   body.add(torso);
 
   const slab = part(plate(6, 3), spec.accent);
-  slab.position.set(0, 0.62, 0.18);
+  slab.position.set(0, 0.63, 0.18);
   body.add(slab);
 
-  eyes(body, 0.72, 0.13, LEGO.brightYellow, 0.9);
-
+  // Heavy arms that hang off the shoulders.
   for (const side of [-1, 1]) {
-    const arm = part(brick(2, 5, false), spec.color);
+    const arm = part(limbGeometry(0.44, 0.19), spec.color);
     arm.name = side < 0 ? 'armL' : 'armR';
-    arm.position.set(side * 0.42, 0.52, 0);
+    arm.position.set(side * 0.46, 0.78, 0);
+    arm.rotation.z = side * 0.1;
     body.add(arm);
   }
 
-  const head = part(brick(4, 2, false), spec.accent);
-  head.position.y = 0.88;
+  const head = part(brick(4, 3, false), spec.accent);
+  head.position.y = 0.91;
   head.name = 'head';
   body.add(head);
+  eyes(head, 0.08, 0.12, LEGO.brightYellow, 0.9);
 
+  // Loose rubble piled on the head.
   for (let i = 0; i < 4; i++) {
     const rock = part(roundBrick(0.9 + (i % 2) * 0.5, PLATE_H * 1.6), spec.accent);
-    rock.position.set((i - 1.5) * 0.16, 0.78 + (i % 2) * 0.06, -0.2);
+    rock.position.set((i - 1.5) * 0.16, 1.06 + (i % 2) * 0.05, -0.2);
     body.add(rock);
   }
 
@@ -584,35 +667,56 @@ function buildCatapult(spec: EnemySpec): THREE.Group {
   const body = new THREE.Group();
   body.name = 'body';
 
-  const chassis = part(brick(4, 6, false), spec.color);
-  chassis.position.y = 0.34;
-  body.add(chassis);
-
-  const deck = part(plate(4, 5), spec.accent);
-  deck.position.y = 0.46;
-  body.add(deck);
-
+  // Wheels roll along the lane, so their axle runs across the body.
   const wheels = new THREE.Group();
   for (const side of [-1, 1]) {
-    const wheel = part(roundBrick(1.8, PLATE_H * 4), LEGO.black);
-    wheel.rotation.x = Math.PI / 2;
-    wheel.position.set(side * 0.28, 0.28, 0);
-    wheels.add(wheel);
+    for (const z of [-0.24, 0.24]) {
+      const wheel = part(roundBrick(1.8, PLATE_H * 4), LEGO.black);
+      wheel.name = 'wheel';
+      wheel.rotation.z = Math.PI / 2;
+      wheel.position.set(side * 0.22 + 0.114, 0.11, z);
+      wheels.add(wheel);
+    }
   }
   g.add(wheels);
 
-  const arm = part(brick(2, 6, false), spec.accent);
+  const chassis = part(brick(4, 6, false), spec.color);
+  chassis.name = 'chassis';
+  chassis.position.y = 0.19;
+  body.add(chassis);
+
+  const deck = part(plate(4, 5), spec.accent);
+  deck.position.y = 0.34;
+  body.add(deck);
+
+  // The throwing arm pivots at its tail; the bucket rides on the far end.
+  const arm = new THREE.Group();
   arm.name = 'armL';
-  arm.position.set(0, 0.66, -0.4);
-  arm.rotation.x = -0.9;
-  body.add(arm);
+  arm.position.set(0, 0.39, -0.2);
+  const armBeam = part(brick(2, 6, false), spec.accent);
+  armBeam.name = 'armBeam';
+  armBeam.position.set(0, 0, 0.375);
+  arm.add(armBeam);
 
   const bucket = part(roundBrick(2.2, PLATE_H * 2), LEGO.flatGray);
-  bucket.position.set(0, 1.0, -1.35);
-  body.add(bucket);
+  bucket.name = 'bucket';
+  bucket.position.set(0, 0.15, 0.75);
+  arm.add(bucket);
+
+  const boulder = part(sphere(1.2), spec.accent);
+  boulder.name = 'boulder';
+  boulder.position.set(0, 0.26, 0.75);
+  arm.add(boulder);
+
+  const counterweight = part(brick(2, 2, false), spec.color);
+  counterweight.name = 'counterweight';
+  counterweight.position.set(0, -0.02, -0.12);
+  arm.add(counterweight);
+
+  body.add(arm);
 
   const head = part(brick(3, 3, false), spec.color);
-  head.position.set(0, 0.6, 0.7);
+  head.position.set(0, 0.39, 0.5);
   head.name = 'head';
   body.add(head);
 
@@ -757,26 +861,31 @@ export class EnemyView {
 
     const s = this.spec.scale;
     this.model.scale.setScalar(s);
-    this.baseY = this.type === 'ghost' ? 0.24 * s : 0;
+    this.baseY = this.type === 'ghost' ? 0.3 * s : 0;
 
-    const barYBase =
-      this.type === 'overlord'
-        ? 1.5
-        : this.type === 'golem'
-          ? 1.35
-          : this.type === 'brute'
-            ? 1.25
-            : this.type === 'catapult'
-              ? 1.2
-              : this.type === 'ghost'
-                ? 1.15
-                : 1.05;
-    this.barFrame.position.y = barYBase * s;
+    // The bar floats just above each creature's silhouette.
+    const barYBase: Record<EnemyId, number> = {
+      slime: 0.6,
+      skeleton: 1.0,
+      zombie: 1.1,
+      ghost: 1.7,
+      demon: 1.5,
+      overlord: 1.5,
+      archer: 1.35,
+      gunner: 1.45,
+      brute: 1.25,
+      wisp: 1.0,
+      golem: 1.35,
+      catapult: 1.45,
+    };
+    this.barFrame.position.y = barYBase[this.type] * s;
     this.barFrame.scale.setScalar(Math.max(0.85, s));
     this.barFrame.visible = false;
 
     this.aura.scale.setScalar(0.45 * s);
     this.flash.scale.setScalar(0.42 * s);
+    // The hit flash belongs over the body, not half sunk in the baseplate.
+    this.flash.position.y = 0.45 * s;
   }
 
   /** Billboard + animate + reflect status. */
@@ -802,7 +911,9 @@ export class EnemyView {
       case 'slime': {
         const squash = 1 + Math.sin(this.anim * 6) * 0.12;
         this.body.scale.set(1 / squash, squash, 1 / squash);
-        this.body.rotation.z = stride * 0.09;
+        // The shell is a wide dome; a big tilt would push one rim edge under
+        // the baseplate, so the wobble stays gentle.
+        this.body.rotation.z = stride * 0.035;
         break;
       }
       case 'ghost': {
@@ -810,7 +921,7 @@ export class EnemyView {
         this.body.rotation.y = this.anim * 0.5;
         for (let i = 0; i < this.wisps.length; i++) {
           const w = this.wisps[i];
-          w.position.y = -0.1 + Math.sin(this.anim * 3 + i * 2.1) * 0.08;
+          w.position.y = Math.sin(this.anim * 3 + i * 2.1) * 0.08;
           w.rotation.z = Math.sin(this.anim * 3 + i) * 0.35;
         }
         break;
@@ -848,7 +959,9 @@ export class EnemyView {
         break;
       }
       case 'wisp': {
-        this.body.position.y = 0.18 + Math.sin(this.anim * 3.4) * 0.09;
+        // The shell is a sphere of radius 0.375, so it has to hover high
+        // enough that its belly never sinks through the baseplate.
+        this.body.position.y = 0.48 + Math.sin(this.anim * 3.4) * 0.07;
         this.body.rotation.y = this.anim * 1.4;
         for (let i = 0; i < this.wisps.length; i++) {
           const w = this.wisps[i];
@@ -857,8 +970,8 @@ export class EnemyView {
         break;
       }
       case 'golem': {
-        this.legs[0] && (this.legs[0].rotation.x = stride * 0.3);
-        this.legs[1] && (this.legs[1].rotation.x = -stride * 0.3);
+        this.legs[0] && (this.legs[0].rotation.x = stride * 0.12);
+        this.legs[1] && (this.legs[1].rotation.x = -stride * 0.12);
         this.body.rotation.z = Math.sin(this.anim * 1.2) * 0.09;
         this.body.position.y = Math.abs(stride) * 0.03;
         for (let i = 0; i < this.arms.length; i++) {
@@ -869,7 +982,16 @@ export class EnemyView {
       case 'catapult': {
         this.body.position.y = Math.abs(stride) * 0.03;
         this.body.rotation.z = Math.sin(this.anim * 3) * 0.04;
-        if (this.arms[0]) this.arms[0].rotation.x = -0.9 + Math.sin(this.anim * 1.5) * 0.12;
+        if (this.arms[0]) this.arms[0].rotation.x = -0.55 + Math.sin(this.anim * 1.5) * 0.12;
+        break;
+      }
+      case 'archer':
+      case 'gunner': {
+        // Both hold a weapon with two hands, so only the legs and body move.
+        this.legs[0] && (this.legs[0].rotation.x = stride * 0.45);
+        this.legs[1] && (this.legs[1].rotation.x = -stride * 0.45);
+        this.body.position.y = Math.abs(stride) * 0.03;
+        this.body.rotation.z = Math.sin(this.anim * 1.6) * 0.07;
         break;
       }
       default: {
