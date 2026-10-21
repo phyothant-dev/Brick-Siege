@@ -153,6 +153,36 @@ export class Ui {
       .forEach((btn) => btn.classList.toggle('is-active', btn.dataset['side'] === cur));
     const blurb = $('side-blurb');
     if (blurb) blurb.textContent = SIDE_INFO[cur].blurb;
+    // The menu explains how to play, so it has to follow the chosen side.
+    if (this.overlayMode === 'menu' && !this.overlay.classList.contains('hidden')) {
+      this.ovBody.innerHTML = this.menuBody();
+    }
+  }
+
+  /**
+   * The "how to play" copy on the menu. It follows the chosen side: the
+   * defender builds towers on empty studs, the attacker sends creatures in
+   * from the lane entrances, so the steps are not the same game.
+   */
+  private menuBody(): string {
+    if (this.game.side === 'attacker') {
+      return `
+        <p>Choose your side. Lead the assault against a fortress that is already defended — you have <strong>five minutes</strong>.</p>
+        <ul>
+          <li>Pick a creature (keys 1-9, 0, - and =) and tap a lit lane tile to send it in</li>
+          <li>Siege units stop to shoot the towers — they are your tools for cracking the defence</li>
+          <li>Destroying a tower pays a bounty, and that funds the next push</li>
+          <li>Break the keep to 0 HP before the clock runs out</li>
+        </ul>`;
+    }
+    return `
+      <p>Choose your side. Defend against <strong>${TOTAL_WAVES} waves</strong>, or lead the assault from the gates.</p>
+      <ul>
+        <li>Pick a brick (keys 1-9, 0, - and =) and click an empty stud to build</li>
+        <li>Click a built tower, then <strong>COMBINE</strong> two matching ones to tier up</li>
+        <li>Every enemy resists something — read the codex (H)</li>
+        <li>Press <strong>SPACE</strong> to call a wave early for bonus bricks</li>
+      </ul>`;
   }
 
   /** Attacker unit palette. Replaces the tower shop while attacking. */
@@ -865,14 +895,7 @@ export class Ui {
     if (mode === 'menu') {
       this.ovTitle.textContent = 'BRICK SIEGE';
       this.ovTag.textContent = 'MASTER BUILDER DEFENSE';
-      this.ovBody.innerHTML = `
-        <p>Choose your side. Defend against <strong>${TOTAL_WAVES} waves</strong>, or lead the assault from the gates.</p>
-        <ul>
-          <li>Pick a brick (1-5) and click an empty stud to build</li>
-          <li>Click a built tower, then <strong>COMBINE</strong> two matching ones to tier up</li>
-          <li>Every enemy resists something \u2014 read the codex (H)</li>
-          <li>Press <strong>SPACE</strong> to call a wave early for bonus bricks</li>
-        </ul>`;
+      this.ovBody.innerHTML = this.menuBody();
       this.ovPrimary.textContent = SIDE_CTA[this.game.side];
       this.refreshMapCards();
       if (!intro) overlayEnter(this.overlayBox);
