@@ -1079,10 +1079,12 @@ kbd {
 }
 
 .overlay__body {
-  font-family: 'Ubuntu Mono', monospace;
-  font-size: 0.78rem;
-  line-height: 1.75;
-  text-transform: uppercase;
+  /* The menu copy is prose, not a label: it uses the display font (Poppins)
+     in sentence case so it reads like a paragraph instead of shouting. */
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  text-transform: none;
   color: rgba(255, 255, 255, 0.85);
   text-align: left;
   margin-bottom: 20px;
@@ -1099,13 +1101,26 @@ kbd {
 .overlay__body ul {
   list-style: none;
   display: grid;
-  gap: 5px;
+  gap: 6px;
   margin-bottom: 12px;
+  padding: 0;
 }
 
+.overlay__body li {
+  position: relative;
+  padding-left: 18px;
+}
+
+/* A small yellow stud marks each step instead of a hard red block. */
 .overlay__body li::before {
-  content: '\25A0 ';
-  color: var(--lego-red);
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 7px;
+  height: 7px;
+  background: var(--lego-yellow);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.55);
 }
 
 .overlay__foot {
@@ -1342,7 +1357,10 @@ kbd {
 
 .map-picker__grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  /* Six maps: one row on wide screens, wrapping to two/three rows on narrow
+     ones. `auto-fit` keeps them on a single row instead of orphaning the last
+     card on a row of its own. */
+  grid-template-columns: repeat(auto-fit, minmax(124px, 1fr));
   gap: 10px;
 }
 
@@ -1376,7 +1394,10 @@ kbd {
   width: 100%;
   height: auto;
   aspect-ratio: 1 / 1;
-  margin-bottom: 8px;
+  /* The preview is a square; without a cap it grows with the column and
+     swallows the whole menu. 116px keeps the lane readable. */
+  max-width: 116px;
+  margin: 0 auto 8px;
   image-rendering: pixelated;
   background: #e9e7e0;
   border: 2px solid rgba(0, 0, 0, 0.35);
@@ -1573,17 +1594,45 @@ body[data-side='attacker'] .build-btn {
 /* Short/landscape screens: shrink the map previews and tighten the menu so the
    whole panel, including the start button, fits without scrolling. */
 @media (max-height: 760px) {
-  .map-card__mini { max-width: 128px; margin: 0 auto 6px; }
+  .map-card__mini { max-width: 88px; margin: 0 auto 6px; }
   .map-picker__grid { gap: 7px; }
+  .map-picker { margin: 10px 0 2px; }
   .theme-picker { margin: 9px 0 3px; }
   .overlay__title { font-size: 1.5rem; margin: 4px 0; }
   .overlay__tag { margin: 2px 0 8px; }
+  .overlay__body { font-size: 0.78rem; margin-bottom: 12px; }
   .overlay__controls { margin: 7px 0 8px; }
   .overlay__foot { display: none; }
+  #overlay .overlay__box--menu > .side-picker {
+    margin-top: 0;
+    padding: 8px 12px;
+  }
 }
-@media (max-width: 640px) {
+@media (max-width: 999px) {
+  /* Stacked menu: three map cards per row, so the six maps land as two clean
+     rows instead of an orphan on a row of its own. */
   .map-picker__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .map-card__mini { max-width: 104px; }
+}
+
+@media (max-width: 640px) {
+  .map-picker__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
   .map-card__name { font-size: 0.58rem; }
+  .map-card__mini { max-width: 76px; margin: 0 auto 5px; }
+  .overlay__body { font-size: 0.78rem; }
+}
+
+/* On the stacked (narrow) menu the card is taller than the screen, so the
+   start button would sit below the fold. Pin it to the bottom of the panel:
+   it stays reachable while the player scrolls the rest of the menu. */
+@media (max-width: 999px) {
+  #overlay .overlay__box--menu > .overlay__actions {
+    position: sticky;
+    bottom: -1px;
+    z-index: 2;
+    padding-bottom: 2px;
+    background: linear-gradient(to top, rgba(17, 18, 22, 0.96) 60%, rgba(17, 18, 22, 0));
+  }
 }
 
 .codex-tabs {
@@ -1682,6 +1731,76 @@ body[data-side='attacker'] .build-btn {
 #overlay .overlay__box--menu .overlay__badge {
   background: var(--lego-yellow);
   color: var(--lego-black);
+}
+
+/* ================= MAIN MENU LAYOUT =================
+   Stacked in one column, the map previews pushed the side/theme pickers and
+   the start button off the bottom of the card, so the player had to scroll
+   inside the menu just to find "BUILD FORTRESS". On a wide screen the menu
+   becomes two columns — the prose on the left, the pickers on the right —
+   and the whole card fits on screen without scrolling. */
+@media (min-width: 1000px) {
+  #overlay .overlay__box--menu {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      'badge badge'
+      'title title'
+      'tag   tag'
+      'body  side'
+      'body  theme'
+      'map   map'
+      'act   act'
+      'ctrl  ctrl'
+      'foot  foot'
+      'hint  hint';
+    column-gap: 34px;
+    align-items: start;
+    text-align: center;
+  }
+  #overlay .overlay__box--menu > .overlay__badge {
+    grid-area: badge;
+    justify-self: center;
+  }
+  #overlay .overlay__box--menu > .overlay__title {
+    grid-area: title;
+  }
+  #overlay .overlay__box--menu > .overlay__tag {
+    grid-area: tag;
+  }
+  #overlay .overlay__box--menu > .overlay__body {
+    grid-area: body;
+    max-width: 46ch;
+    margin-inline: auto;
+  }
+  #overlay .overlay__box--menu > .side-picker {
+    grid-area: side;
+  }
+  #overlay .overlay__box--menu > .theme-picker {
+    grid-area: theme;
+  }
+  #overlay .overlay__box--menu > .map-picker {
+    grid-area: map;
+  }
+  #overlay .overlay__box--menu > .overlay__actions {
+    grid-area: act;
+  }
+  #overlay .overlay__box--menu > .overlay__controls {
+    grid-area: ctrl;
+  }
+  #overlay .overlay__box--menu > .overlay__foot {
+    grid-area: foot;
+  }
+  #overlay .overlay__box--menu > .overlay__hint {
+    grid-area: hint;
+  }
+  /* The side card sits in a column of its own, so it can breathe. */
+  #overlay .overlay__box--menu > .side-picker {
+    margin-top: 4px;
+    padding: 12px 16px;
+    border: 3px solid rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.35);
+  }
 }
 
 .build-btn__meta b#wave-timer{display:inline-block;}
